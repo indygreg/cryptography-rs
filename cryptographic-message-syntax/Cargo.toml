@@ -6,8 +6,8 @@ edition = "2021"
 license = "MPL-2.0"
 description = "A pure Rust implementation of Crypographic Message Syntax (RFC 5652)"
 keywords = ["cms", "rfc5652", "apple", "codesign"]
-homepage = "https://github.com/indygreg/PyOxidizer"
-repository = "https://github.com/indygreg/PyOxidizer.git"
+homepage = "https://github.com/indygreg/cryptography-rs"
+repository = "https://github.com/indygreg/cryptography-rs.git"
 readme = "README.md"
 
 [dependencies]

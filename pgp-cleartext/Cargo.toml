@@ -6,8 +6,8 @@ authors = ["Gregory Szorc <gregory.szorc@gmail.com"]
 license = "MPL-2.0"
 description = "PGP cleartext framework implementation"
 keywords = ["pgp", "cryptography"]
-homepage = "https://github.com/indygreg/PyOxidizer"
-repository = "https://github.com/indygreg/PyOxidizer.git"
+homepage = "https://github.com/indygreg/cryptography-rs"
+repository = "https://github.com/indygreg/cryptography-rs.git"
 readme = "README.md"
 
 [dependencies]

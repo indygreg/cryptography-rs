@@ -2,15 +2,22 @@
 ``cryptographic-message-syntax`` History
 ========================================
 
-0.18.0
+0.19.0
 ======
 
 (Not yet released)
 
+* Canonical home of project moved to https://github.com/indygreg/cryptography-rs.
+
+0.18.0
+======
+
+(Released 2022-09-17)
+
 0.17.0
 ======
 
-(Released 2022-0807)
+(Released 2022-08-07)
 
 * bcder crate upgraded from 0.6.1 to 0.7.0. This entailed a lot of changes,
   mainly to error handling.

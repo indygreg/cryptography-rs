@@ -7,14 +7,7 @@ is Time-Stamp Protocol (TSP) (RFC 3161) client support.
 From a high level CMS defines a way to digitally sign and authenticate
 arbitrary content.
 
-CMS is used to power the digital signatures embedded within Mach-O binaries
-on Apple platforms such as macOS and iOS. The primitives in this crate could
-be used to sign and authenticate Mach-O binaries. (See the sister
-`apple-codesign` crate in the Git repository for code that does just this.)
-
-This crate is developed as part of the
-[PyOxidizer](https://github.com/indygreg/PyOxidizer.git) project and is
-developed in that repository. While this crate is developed as part of a
-larger product, it is authored such that it can be used standalone and
-modifications to supports its use outside of its original use case are
-very much welcome!
+This crate was originally developed to support code signing on Apple
+platforms. (See the `apple-codesign` Rust crate.) However, it is a
+generic library crate. But some historical decisions from its original
+may remain.

@@ -2,10 +2,17 @@
 ``x509-certificate`` History
 ============================
 
-0.15.0
+0.16.0
 ======
 
 (Not yet released)
+
+* Canonical home of project moved to https://github.com/indygreg/cryptography-rs.
+
+0.15.0
+======
+
+(Released 2022-09-17)
 
 * der crate upgraded from 0.5 to 0.6.
 * spki crate upgraded from 0.5 to 0.6.

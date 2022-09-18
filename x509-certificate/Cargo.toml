@@ -6,8 +6,8 @@ edition = "2021"
 license = "MPL-2.0"
 description = "X.509 certificate parser and utility functionality"
 keywords = ["x509", "cryptography", "pki"]
-homepage = "https://github.com/indygreg/PyOxidizer"
-repository = "https://github.com/indygreg/PyOxidizer.git"
+homepage = "https://github.com/indygreg/cryptography-rs"
+repository = "https://github.com/indygreg/cryptography-rs.git"
 readme = "README.md"
 
 [features]
