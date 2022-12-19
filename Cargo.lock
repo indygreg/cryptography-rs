@@ -240,7 +240,7 @@ dependencies = [
 
 [[package]]
 name = "cryptographic-message-syntax"
-version = "0.19.0-pre"
+version = "0.19.0"
 dependencies = [
  "bcder",
  "bytes",
@@ -997,7 +997,7 @@ dependencies = [
 
 [[package]]
 name = "pgp-cleartext"
-version = "0.4.0-pre"
+version = "0.4.0"
 dependencies = [
  "chrono",
  "digest 0.10.6",
@@ -1880,7 +1880,7 @@ dependencies = [
 
 [[package]]
 name = "x509-certificate"
-version = "0.16.0-pre"
+version = "0.16.0"
 dependencies = [
  "bcder",
  "bytes",

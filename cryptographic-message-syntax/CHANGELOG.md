@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.19.0
+
+Released on 2022-12-19.
+
 * Canonical home of project moved to https://github.com/indygreg/cryptography-rs.
 * Cargo.toml now defines patch versions of all dependencies.
 
