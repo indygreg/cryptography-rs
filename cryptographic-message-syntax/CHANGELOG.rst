@@ -8,6 +8,7 @@
 (Not yet released)
 
 * Canonical home of project moved to https://github.com/indygreg/cryptography-rs.
+* Cargo.toml now defines patch versions of all dependencies.
 
 0.18.0
 ======

@@ -14,13 +14,13 @@ readme = "README.md"
 test = []
 
 [dependencies]
-bcder = "0.7"
-bytes = "1.0"
-chrono = "0.4"
-der = "0.6"
-hex = "0.4"
-pem = "1.0"
-ring = "0.16"
-signature = "1.3"
-spki = { version = "0.6", features = ["alloc"] }
-thiserror = "1.0"
+bcder = "0.7.1"
+bytes = "1.3.0"
+chrono = "0.4.23"
+der = "0.6.1"
+hex = "0.4.3"
+pem = "1.0.2"
+ring = "0.16.20"
+signature = "1.3.2"
+spki = { version = "0.6.0", features = ["alloc"] }
+thiserror = "1.0.38"

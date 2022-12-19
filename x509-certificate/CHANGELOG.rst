@@ -9,6 +9,7 @@
 
 * Canonical home of project moved to https://github.com/indygreg/cryptography-rs.
 * chrono crate upgraded from 0.4.22 to 0.4.23.
+* Cargo.toml now defines patch versions of all dependencies.
 
 0.15.0
 ======

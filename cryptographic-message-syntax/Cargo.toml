@@ -11,14 +11,14 @@ repository = "https://github.com/indygreg/cryptography-rs.git"
 readme = "README.md"
 
 [dependencies]
-bcder = "0.7"
-bytes = "1.0"
-chrono = "0.4"
-hex = "0.4"
-pem = "1.0"
-reqwest = { version = "0.11", default-features = false, features = ["blocking", "rustls-tls"] }
-ring = "0.16"
-signature = "1.3"
+bcder = "0.7.1"
+bytes = "1.0.1"
+chrono = "0.4.23"
+hex = "0.4.3"
+pem = "1.0.2"
+reqwest = { version = "0.11.13", default-features = false, features = ["blocking", "rustls-tls"] }
+ring = "0.16.20"
+signature = "1.3.2"
 
 [dependencies.x509-certificate]
 path = "../x509-certificate"
