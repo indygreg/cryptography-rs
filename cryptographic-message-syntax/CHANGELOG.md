@@ -1,8 +1,10 @@
 # `cryptographic-message-syntax` History
 
-## 0.19.0
+<!-- next-header -->
 
-(Not yet released)
+## Unreleased
+
+Released on ReleaseDate.
 
 * Canonical home of project moved to https://github.com/indygreg/cryptography-rs.
 * Cargo.toml now defines patch versions of all dependencies.

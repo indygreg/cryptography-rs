@@ -1,8 +1,10 @@
 # `x509-certificate` History
 
-## 0.16.0
+<!-- next-header -->
 
-(Not yet released)
+## Unreleased
+
+Released on ReleaseDate.
 
 * Canonical home of project moved to https://github.com/indygreg/cryptography-rs.
 * chrono crate upgraded from 0.4.22 to 0.4.23.
