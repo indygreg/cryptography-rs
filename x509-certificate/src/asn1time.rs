@@ -258,16 +258,16 @@ impl GeneralizedTime {
                     let offset_seconds = (offset_hours * 3600 + offset_minutes * 60) as i32;
 
                     Zone::Offset(if east {
-                        chrono::FixedOffset::east(offset_seconds)
+                        chrono::FixedOffset::east_opt(offset_seconds).ok_or_else(|| source.content_err("bad timezone time"))?
                     } else {
-                        chrono::FixedOffset::west(offset_seconds)
+                        chrono::FixedOffset::west_opt(offset_seconds).ok_or_else(|| source.content_err("bad timezone offset"))?
                     })
                 }
             }
         };
 
-        if let chrono::LocalResult::Single(dt) = chrono::Utc.ymd_opt(year, month, day) {
-            if let Some(dt) = dt.and_hms_nano_opt(hour, minute, second, nano) {
+        if let chrono::LocalResult::Single(dt) = chrono::Utc.with_ymd_and_hms(year, month, day, hour, minute, second) {
+            if let Some(dt) = dt.with_nanosecond(nano) {
                 Ok(Self {
                     time: dt.naive_utc(),
                     fractional_seconds: allow_fractional_seconds,
@@ -277,7 +277,7 @@ impl GeneralizedTime {
                 Err(source.content_err("invalid time value"))
             }
         } else {
-            Err(source.content_err("invalid date value"))
+            Err(source.content_err("invalid datetime value"))
         }
     }
 }
@@ -373,14 +373,10 @@ impl UtcTime {
             return Err(prim.content_err("UTCTime must end with `Z`"));
         }
 
-        if let chrono::LocalResult::Single(dt) = chrono::Utc.ymd_opt(year, month, day) {
-            if let Some(dt) = dt.and_hms_opt(hour, minute, second) {
-                Ok(Self(dt))
-            } else {
-                Err(prim.content_err("invalid hour minute second value"))
-            }
+        if let chrono::LocalResult::Single(dt) = chrono::Utc.with_ymd_and_hms(year, month, day, hour, minute, second) {
+            Ok(Self(dt))
         } else {
-            Err(prim.content_err("invalid year month day value"))
+            Err(prim.content_err("invalid year month day hour minute second value"))
         }
     }
 }
@@ -426,23 +422,23 @@ mod test {
     #[test]
     fn generalized_time() -> Result<(), ContentError> {
         let gt = GeneralizedTime {
-            time: chrono::NaiveDateTime::from_timestamp(1643510772, 0),
+            time: chrono::NaiveDateTime::from_timestamp_opt(1643510772, 0).unwrap(),
             fractional_seconds: false,
             timezone: Zone::Utc,
         };
         assert_eq!(gt.to_string(), "20220130024612Z");
 
         let gt = GeneralizedTime {
-            time: chrono::NaiveDateTime::from_timestamp(1643510772, 0),
+            time: chrono::NaiveDateTime::from_timestamp_opt(1643510772, 0).unwrap(),
             fractional_seconds: false,
-            timezone: Zone::Offset(chrono::FixedOffset::east(3600)),
+            timezone: Zone::Offset(chrono::FixedOffset::east_opt(3600).unwrap()),
         };
         assert_eq!(gt.to_string(), "20220130024612+0100");
 
         let gt = GeneralizedTime {
-            time: chrono::NaiveDateTime::from_timestamp(1643510772, 0),
+            time: chrono::NaiveDateTime::from_timestamp_opt(1643510772, 0).unwrap(),
             fractional_seconds: false,
-            timezone: Zone::Offset(chrono::FixedOffset::west(7200)),
+            timezone: Zone::Offset(chrono::FixedOffset::west_opt(7200).unwrap()),
         };
         assert_eq!(gt.to_string(), "20220130024612-0200");
 
