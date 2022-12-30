@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.5.0
+
+Released on 2022-12-30.
+
 * smallvec upgraded 1.7 -> 1.10.
 
 ## 0.4.0
