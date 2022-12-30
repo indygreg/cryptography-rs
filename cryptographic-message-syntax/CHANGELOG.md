@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+* bytes upgraded 1.0 -> 1.3.
+* pem upgraded 1.0 -> 1.1.
+* signature upgraded 1.3 -> 1.6.
+
 ## 0.19.0
 
 Released on 2022-12-19.
