@@ -102,6 +102,10 @@ impl Values for AlgorithmIdentifier {
 pub struct AlgorithmParameter(Captured);
 
 impl AlgorithmParameter {
+    pub fn from_captured(captured: Captured) -> Self {
+        Self(captured)
+    }
+
     /// Construct a new instance consisting of a single OID.
     pub fn from_oid(oid: Oid) -> Self {
         let captured = Captured::from_values(Mode::Der, oid.encode());
