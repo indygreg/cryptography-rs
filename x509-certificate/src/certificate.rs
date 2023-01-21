@@ -95,7 +95,7 @@ impl X509Certificate {
     pub fn from_pem(data: impl AsRef<[u8]>) -> Result<Self, Error> {
         let data = pem::parse(data.as_ref()).map_err(Error::PemDecode)?;
 
-        Self::from_der(&data.contents)
+        Self::from_der(data.contents)
     }
 
     /// Construct instances by parsing PEM with potentially multiple records.
@@ -120,7 +120,7 @@ impl X509Certificate {
 
         pem.into_iter()
             .filter(|pem| tags.contains(&pem.tag.as_str()))
-            .map(|pem| Self::from_der(&pem.contents))
+            .map(|pem| Self::from_der(pem.contents))
             .collect::<Result<_, _>>()
     }
 

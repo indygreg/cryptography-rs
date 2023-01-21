@@ -249,7 +249,7 @@ impl InMemorySigningKeyPair {
     pub fn from_pkcs8_pem(data: impl AsRef<[u8]>) -> Result<Self, Error> {
         let der = pem::parse(data.as_ref()).map_err(Error::PemDecode)?;
 
-        Self::from_pkcs8_der(&der.contents)
+        Self::from_pkcs8_der(der.contents)
     }
 
     /// Generate a random key pair given a key algorithm and optional ECDSA signing algorithm.
