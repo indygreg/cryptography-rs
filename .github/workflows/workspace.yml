@@ -19,11 +19,11 @@ jobs:
           - 'nightly'
           - '1.61.0'
         target:
-          - os: 'ubuntu-20.04'
+          - os: 'ubuntu-22.04'
             triple: 'x86_64-unknown-linux-gnu'
           - os: 'macos-12'
             triple: 'x86_64-apple-darwin'
-          - os: 'windows-2019'
+          - os: 'windows-2022'
             triple: 'x86_64-pc-windows-msvc'
     continue-on-error: ${{ matrix.rust_toolchain == 'nightly' }}
     runs-on: ${{ matrix.target.os }}
