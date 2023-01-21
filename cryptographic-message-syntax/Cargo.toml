@@ -1,6 +1,6 @@
 [package]
 name = "cryptographic-message-syntax"
-version = "0.20.0"
+version = "0.21.0"
 authors = ["Gregory Szorc <gregory.szorc@gmail.com>"]
 edition = "2021"
 license = "MPL-2.0"
@@ -22,5 +22,5 @@ signature = { version = "2.0.0", features = ["std"] }
 
 [dependencies.x509-certificate]
 path = "../x509-certificate"
-version = "0.17.0-pre"
+version = "0.18.0"
 features = ["test"]
