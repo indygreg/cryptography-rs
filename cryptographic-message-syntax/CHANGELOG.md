@@ -6,6 +6,8 @@
 
 Released on ReleaseDate.
 
+* signature upgraded 1.6 -> 2.0.
+
 ## 0.20.0
 
 Released on 2022-12-30.

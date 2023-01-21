@@ -13,7 +13,7 @@ use {
         rand::SystemRandom,
         signature::{self as ringsig, KeyPair},
     },
-    signature::{Signature as SignatureTrait, Signer},
+    signature::{SignatureEncoding as SignatureTrait, Signer},
 };
 
 /// Signifies that an entity is capable of producing cryptographic signatures.
@@ -83,8 +83,14 @@ impl AsRef<[u8]> for Signature {
 }
 
 impl SignatureTrait for Signature {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, signature::Error> {
-        Ok(Self(bytes.to_vec()))
+    type Repr = Vec<u8>;
+}
+
+impl TryFrom<&[u8]> for Signature {
+    type Error = ();
+
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        Ok(Self(value.to_vec()))
     }
 }
 
@@ -125,12 +131,12 @@ impl Signer<Signature> for InMemorySigningKeyPair {
                     .sign(&ring::rand::SystemRandom::new(), msg)
                     .map_err(|_| signature::Error::new())?;
 
-                Signature::from_bytes(signature.as_ref())
+                Ok(Signature::from(signature.as_ref().to_vec()))
             }
             Self::Ed25519(key) => {
                 let signature = key.sign(msg);
 
-                Signature::from_bytes(signature.as_ref())
+                Ok(Signature::from(signature.as_ref().to_vec()))
             }
         }
     }
