@@ -42,8 +42,12 @@ pub struct SignerBuilder<'a> {
     /// The cryptographic key pair used for signing content.
     signing_key: &'a dyn KeyInfoSigner,
 
+    /// Signer identifier - either explicitly provided, or
+    /// initialized from signing_certificate
+    signer_identifier: SignerIdentifier,
+
     /// X.509 certificate used for signing.
-    signing_certificate: CapturedX509Certificate,
+    signing_certificate: Option<CapturedX509Certificate>,
 
     /// Content digest algorithm to use.
     digest_algorithm: DigestAlgorithm,
@@ -75,7 +79,31 @@ impl<'a> SignerBuilder<'a> {
     ) -> Self {
         Self {
             signing_key,
-            signing_certificate,
+            signer_identifier: SignerIdentifier::IssuerAndSerialNumber(IssuerAndSerialNumber {
+                issuer: signing_certificate.issuer_name().clone(),
+                serial_number: signing_certificate.serial_number_asn1().clone(),
+            }),
+            signing_certificate: Some(signing_certificate),
+            digest_algorithm: DigestAlgorithm::Sha256,
+            message_id_content: None,
+            content_type: Oid(Bytes::copy_from_slice(OID_ID_DATA.as_ref())),
+            extra_signed_attributes: Vec::new(),
+            time_stamp_url: None,
+        }
+    }
+
+    /// Construct a new entity that will sign content.
+    ///
+    /// An entity is constructed from a signing key and signer identifier, which are
+    /// mandatory.
+    pub fn new_with_signer_identifier(
+        signing_key: &'a dyn KeyInfoSigner,
+        signer_identifier: SignerIdentifier,
+    ) -> Self {
+        Self {
+            signing_key,
+            signer_identifier,
+            signing_certificate: None,
             digest_algorithm: DigestAlgorithm::Sha256,
             message_id_content: None,
             content_type: Oid(Bytes::copy_from_slice(OID_ID_DATA.as_ref())),
@@ -262,11 +290,10 @@ impl<'a> SignedDataBuilder<'a> {
         for signer in &self.signers {
             seen_digest_algorithms.insert(signer.digest_algorithm);
 
-            if !seen_certificates
-                .iter()
-                .any(|x| x == &signer.signing_certificate)
-            {
-                seen_certificates.push(signer.signing_certificate.clone());
+            if let Some(signing_certificate) = &signer.signing_certificate {
+                if !seen_certificates.iter().any(|x| x == signing_certificate) {
+                    seen_certificates.push(signing_certificate.clone());
+                }
             }
 
             let version = CmsVersion::V1;
@@ -274,11 +301,6 @@ impl<'a> SignedDataBuilder<'a> {
                 algorithm: signer.digest_algorithm.into(),
                 parameters: None,
             };
-
-            let sid = SignerIdentifier::IssuerAndSerialNumber(IssuerAndSerialNumber {
-                issuer: signer.signing_certificate.issuer_name().clone(),
-                serial_number: signer.signing_certificate.serial_number_asn1().clone(),
-            });
 
             // The message digest attribute is mandatory.
             //
@@ -343,7 +365,7 @@ impl<'a> SignedDataBuilder<'a> {
             // signature.
             let mut signer_info = SignerInfo {
                 version,
-                sid,
+                sid: signer.signer_identifier.clone(),
                 digest_algorithm,
                 signed_attributes,
                 signature_algorithm,
