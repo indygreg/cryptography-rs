@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.19.0
+
+Released on 2023-03-19.
+
 * `Time` now has a `take_opt_from()`.
 * `rfc5280::Version` now has a `take_opt_from()`.
 * `rfc5280::CertificateList` now has a `take_opt_from()`.

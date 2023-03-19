@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.22.0
+
+Released on 2023-03-19.
+
 * `SignerBuilder` gained a `new_with_signer_identifier()` that allows constructing
   from a `SignerIdentifier` instead of a `CapturedX509Certificate`. This API allows
   usage in alternate signing scenarios, such as those found in RFC 5272. Contributed
