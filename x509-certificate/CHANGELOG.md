@@ -6,6 +6,11 @@
 
 Released on ReleaseDate.
 
+* `Time` now has a `take_opt_from()`.
+* `rfc5280::Version` now has a `take_opt_from()`.
+* `rfc5280::CertificateList` now has a `take_opt_from()`.
+* `rfc5280::TbsCertList` now implements `take_from()`.
+
 ## 0.18.0
 
 Released on 2023-01-21.

@@ -373,6 +373,17 @@ impl Version {
         }
     }
 
+    pub fn take_opt_from<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Option<Self>, DecodeError<S::Error>> {
+        match cons.take_opt_primitive_if(Tag::INTEGER, Integer::i8_from_primitive)? {
+            Some(0) => Ok(Some(Self::V1)),
+            Some(1) => Ok(Some(Self::V2)),
+            Some(2) => Ok(Some(Self::V3)),
+            _ => Err(cons.content_err("unexpected Version value")),
+        }
+    }
+
     pub fn encode(self) -> impl Values {
         u8::from(self).encode()
     }
@@ -622,6 +633,18 @@ pub struct CertificateList {
 
 impl CertificateList {
     pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        cons.take_sequence(|cons| Self::from_sequence(cons))
+    }
+
+    pub fn take_opt_from<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Option<Self>, DecodeError<S::Error>> {
+        cons.take_opt_sequence(|cons| Self::from_sequence(cons))
+    }
+
+    pub fn from_sequence<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Self, DecodeError<S::Error>> {
         let tbs_cert_list = TbsCertList::take_from(cons)?;
         let signature_algorithm = AlgorithmIdentifier::take_from(cons)?;
         let signature = BitString::take_from(cons)?;
@@ -666,6 +689,22 @@ pub struct TbsCertList {
 
 impl TbsCertList {
     pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
-        Err(cons.content_err("parsing of TBSCertList not implemented"))
+        let version = Version::take_opt_from(cons)?;
+        let signature = AlgorithmIdentifier::take_from(cons)?;
+        let issuer = Name::take_from(cons)?;
+        let this_update = Time::take_from(cons)?;
+        let next_update = Time::take_opt_from(cons)?;
+        let revoked_certificates = Vec::new();
+        let crl_extensions = None::<Extensions>;
+
+        Ok(Self {
+            version,
+            signature,
+            issuer,
+            this_update,
+            next_update,
+            revoked_certificates,
+            crl_extensions,
+        })
     }
 }

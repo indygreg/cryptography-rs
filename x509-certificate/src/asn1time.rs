@@ -50,6 +50,18 @@ impl Time {
         })
     }
 
+    pub fn take_opt_from<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Option<Self>, DecodeError<S::Error>> {
+        cons.take_opt_primitive(|tag, prim| match tag {
+            Tag::UTC_TIME => Ok(Self::UtcTime(UtcTime::from_primitive(prim)?)),
+            Tag::GENERALIZED_TIME => Ok(Self::GeneralTime(
+                GeneralizedTime::from_primitive_no_fractional_or_timezone_offsets(prim)?,
+            )),
+            _ => Err(prim.content_err(format!("expected UTCTime or GeneralizedTime; got {}", tag))),
+        })
+    }
+
     pub fn encode_ref(&self) -> impl Values + '_ {
         match self {
             Self::UtcTime(utc) => (Some(utc.encode()), None),
