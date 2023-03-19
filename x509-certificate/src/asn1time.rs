@@ -258,15 +258,19 @@ impl GeneralizedTime {
                     let offset_seconds = (offset_hours * 3600 + offset_minutes * 60) as i32;
 
                     Zone::Offset(if east {
-                        chrono::FixedOffset::east_opt(offset_seconds).ok_or_else(|| source.content_err("bad timezone time"))?
+                        chrono::FixedOffset::east_opt(offset_seconds)
+                            .ok_or_else(|| source.content_err("bad timezone time"))?
                     } else {
-                        chrono::FixedOffset::west_opt(offset_seconds).ok_or_else(|| source.content_err("bad timezone offset"))?
+                        chrono::FixedOffset::west_opt(offset_seconds)
+                            .ok_or_else(|| source.content_err("bad timezone offset"))?
                     })
                 }
             }
         };
 
-        if let chrono::LocalResult::Single(dt) = chrono::Utc.with_ymd_and_hms(year, month, day, hour, minute, second) {
+        if let chrono::LocalResult::Single(dt) =
+            chrono::Utc.with_ymd_and_hms(year, month, day, hour, minute, second)
+        {
             if let Some(dt) = dt.with_nanosecond(nano) {
                 Ok(Self {
                     time: dt.naive_utc(),
@@ -373,7 +377,9 @@ impl UtcTime {
             return Err(prim.content_err("UTCTime must end with `Z`"));
         }
 
-        if let chrono::LocalResult::Single(dt) = chrono::Utc.with_ymd_and_hms(year, month, day, hour, minute, second) {
+        if let chrono::LocalResult::Single(dt) =
+            chrono::Utc.with_ymd_and_hms(year, month, day, hour, minute, second)
+        {
             Ok(Self(dt))
         } else {
             Err(prim.content_err("invalid year month day hour minute second value"))
