@@ -16,11 +16,11 @@ test = []
 [dependencies]
 bcder = "0.7.1"
 bytes = "1.4.0"
-chrono = "0.4.23"
+chrono = "0.4.24"
 der = "0.7.1"
 hex = "0.4.3"
 pem = "1.1.1"
 ring = "0.16.20"
 signature = { version = "2.0.0", features = ["std"] }
 spki = { version = "0.7.0", features = ["alloc"] }
-thiserror = "1.0.38"
+thiserror = "1.0.40"
