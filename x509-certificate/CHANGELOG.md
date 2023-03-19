@@ -10,6 +10,8 @@ Released on ReleaseDate.
 * `rfc5280::Version` now has a `take_opt_from()`.
 * `rfc5280::CertificateList` now has a `take_opt_from()`.
 * `rfc5280::TbsCertList` now implements `take_from()`.
+* der upgraded 0.6 -> 0.7.
+* spki 0.6 -> 0.7.
 
 ## 0.18.0
 
