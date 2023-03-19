@@ -13,6 +13,7 @@ Released on ReleaseDate.
 * der upgraded 0.6 -> 0.7.
 * spki upgrades 0.6 -> 0.7.
 * bytes upgraded 1.3 -> 1.4.
+* Minimum Rust version 1.61 -> 1.65.
 
 ## 0.18.0
 

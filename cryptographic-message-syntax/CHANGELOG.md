@@ -11,6 +11,7 @@ Released on ReleaseDate.
   usage in alternate signing scenarios, such as those found in RFC 5272. Contributed
   by Outurnate in #8.
 * bytes upgraded 1.3 -> 1.4.
+* Minimum Rust version 1.61 -> 1.65.
 
 ## 0.21.0
 
