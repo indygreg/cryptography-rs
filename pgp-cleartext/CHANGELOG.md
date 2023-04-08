@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.7.0
+
+Released on 2023-04-08.
+
 * pgp upgrades 0.9 -> 0.10. MSRV bumped to 1.65.
 
 ## 0.6.0
