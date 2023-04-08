@@ -165,10 +165,7 @@ impl CertificationRequest {
 
     /// Encode the data structure to PEM.
     pub fn encode_pem(&self) -> Result<String, std::io::Error> {
-        Ok(pem::encode(&pem::Pem {
-            tag: "CERTIFICATE REQUEST".into(),
-            contents: self.encode_der()?,
-        }))
+        Ok(pem::Pem::new("CERTIFICATE REQUEST", self.encode_der()?).to_string())
     }
 }
 

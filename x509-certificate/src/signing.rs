@@ -249,7 +249,7 @@ impl InMemorySigningKeyPair {
     pub fn from_pkcs8_pem(data: impl AsRef<[u8]>) -> Result<Self, Error> {
         let der = pem::parse(data.as_ref()).map_err(Error::PemDecode)?;
 
-        Self::from_pkcs8_der(der.contents)
+        Self::from_pkcs8_der(der.contents())
     }
 
     /// Generate a random key pair given a key algorithm and optional ECDSA signing algorithm.
@@ -347,10 +347,7 @@ mod test {
                 InMemorySigningKeyPair::Ecdsa(_, _, _)
             ));
 
-            let pem_data = pem::encode(&pem::Pem {
-                tag: "PRIVATE KEY".to_string(),
-                contents: doc.as_ref().to_vec(),
-            });
+            let pem_data = pem::Pem::new("PRIVATE KEY", doc.as_ref()).to_string();
 
             let signing_key = InMemorySigningKeyPair::from_pkcs8_pem(pem_data.as_bytes()).unwrap();
             assert!(matches!(
@@ -397,10 +394,7 @@ mod test {
         let signing_key = InMemorySigningKeyPair::from_pkcs8_der(doc.as_ref()).unwrap();
         assert!(matches!(signing_key, InMemorySigningKeyPair::Ed25519(_)));
 
-        let pem_data = pem::encode(&pem::Pem {
-            tag: "PRIVATE KEY".to_string(),
-            contents: doc.as_ref().to_vec(),
-        });
+        let pem_data = pem::Pem::new("PRIVATE KEY", doc.as_ref()).to_string();
 
         let signing_key = InMemorySigningKeyPair::from_pkcs8_pem(pem_data.as_bytes()).unwrap();
         assert!(matches!(signing_key, InMemorySigningKeyPair::Ed25519(_)));

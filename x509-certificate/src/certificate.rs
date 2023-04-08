@@ -95,7 +95,7 @@ impl X509Certificate {
     pub fn from_pem(data: impl AsRef<[u8]>) -> Result<Self, Error> {
         let data = pem::parse(data.as_ref()).map_err(Error::PemDecode)?;
 
-        Self::from_der(data.contents)
+        Self::from_der(data.contents())
     }
 
     /// Construct instances by parsing PEM with potentially multiple records.
@@ -119,8 +119,8 @@ impl X509Certificate {
         let pem = pem::parse_many(data.as_ref()).map_err(Error::PemDecode)?;
 
         pem.into_iter()
-            .filter(|pem| tags.contains(&pem.tag.as_str()))
-            .map(|pem| Self::from_der(pem.contents))
+            .filter(|pem| tags.contains(&pem.tag()))
+            .map(|pem| Self::from_der(pem.contents()))
             .collect::<Result<_, _>>()
     }
 
@@ -203,20 +203,14 @@ impl X509Certificate {
     ///
     /// The underlying binary data is DER encoded.
     pub fn write_pem(&self, fh: &mut impl Write) -> Result<(), std::io::Error> {
-        let encoded = pem::encode(&pem::Pem {
-            tag: "CERTIFICATE".to_string(),
-            contents: self.encode_der()?,
-        });
+        let encoded = pem::Pem::new("CERTIFICATE", self.encode_der()?).to_string();
 
         fh.write_all(encoded.as_bytes())
     }
 
     /// Encode the certificate to a PEM string.
     pub fn encode_pem(&self) -> Result<String, std::io::Error> {
-        Ok(pem::encode(&pem::Pem {
-            tag: "CERTIFICATE".to_string(),
-            contents: self.encode_der()?,
-        }))
+        Ok(pem::Pem::new("CERTIFICATE", self.encode_der()?).to_string())
     }
 
     /// Attempt to resolve a known [KeyAlgorithm] used by the private key associated with this certificate.
@@ -463,7 +457,7 @@ impl CapturedX509Certificate {
     pub fn from_pem(data: impl AsRef<[u8]>) -> Result<Self, Error> {
         let data = pem::parse(data.as_ref()).map_err(Error::PemDecode)?;
 
-        Self::from_der(data.contents)
+        Self::from_der(data.contents())
     }
 
     /// Construct instances by parsing PEM with potentially multiple records.
@@ -487,8 +481,8 @@ impl CapturedX509Certificate {
         let pem = pem::parse_many(data.as_ref()).map_err(Error::PemDecode)?;
 
         pem.into_iter()
-            .filter(|pem| tags.contains(&pem.tag.as_str()))
-            .map(|pem| Self::from_der(pem.contents))
+            .filter(|pem| tags.contains(&pem.tag()))
+            .map(|pem| Self::from_der(pem.contents()))
             .collect::<Result<_, _>>()
     }
 
@@ -505,10 +499,7 @@ impl CapturedX509Certificate {
 
     /// Encode the original contents of this certificate to PEM.
     pub fn encode_pem(&self) -> String {
-        pem::encode(&pem::Pem {
-            tag: "CERTIFICATE".to_string(),
-            contents: self.constructed_data().to_vec(),
-        })
+        pem::Pem::new("CERTIFICATE", self.constructed_data()).to_string()
     }
 
     /// Verify that another certificate, `other`, signed this certificate.
