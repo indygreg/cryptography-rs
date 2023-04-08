@@ -31,8 +31,8 @@ use {
     chrono::SubsecRound,
     digest::Digest,
     pgp::{
-        crypto::{HashAlgorithm, Hasher},
-        packet::{Packet, SignatureConfig, SignatureType, Subpacket},
+        crypto::hash::{HashAlgorithm, Hasher},
+        packet::{Packet, SignatureConfig, SignatureType, Subpacket, SubpacketData},
         types::{KeyVersion, PublicKeyTrait, SecretKeyTrait},
         Signature,
     },
@@ -595,11 +595,17 @@ where
     let cleartext = source_lines.join("\r\n").into_bytes();
 
     // TODO these sets should be audited by someone who knows PGP.
+
     let hashed_subpackets = vec![
-        Subpacket::IssuerFingerprint(KeyVersion::V4, SmallVec::from_slice(&key.fingerprint())),
-        Subpacket::SignatureCreationTime(chrono::Utc::now().trunc_subsecs(0)),
+        Subpacket::regular(SubpacketData::IssuerFingerprint(
+            KeyVersion::V4,
+            SmallVec::from_slice(&key.fingerprint()),
+        )),
+        Subpacket::regular(SubpacketData::SignatureCreationTime(
+            chrono::Utc::now().trunc_subsecs(0),
+        )),
     ];
-    let unhashed_subpackets = vec![Subpacket::Issuer(key.key_id())];
+    let unhashed_subpackets = vec![Subpacket::regular(SubpacketData::Issuer(key.key_id()))];
 
     let config = SignatureConfig::new_v4(
         Default::default(),
