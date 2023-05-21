@@ -96,6 +96,11 @@ pub(crate) const OID_EC_SECP256R1: ConstOid = Oid(&[42, 134, 72, 206, 61, 3, 1, 
 /// 1.3.132.0.34
 pub(crate) const OID_EC_SECP384R1: ConstOid = Oid(&[43, 129, 4, 0, 34]);
 
+/// No signature identifier
+/// 
+/// 1.3.6.1.5.5.7.6.2
+pub(crate) const OID_NO_SIGNATURE_ALGORITHM: ConstOid = Oid(&[43, 6, 1, 5, 5, 7, 6, 2]);
+
 /// A hashing algorithm used for digesting data.
 ///
 /// Instances can be converted to and from [Oid] via `From`/`Into`
@@ -329,6 +334,11 @@ pub enum SignatureAlgorithm {
     ///
     /// Corresponds to OID 1.3.101.112.
     Ed25519,
+
+    /// No signature with digest algorithm
+    /// 
+    /// Corresponds to OID 1.3.6.1.5.5.7.6.2
+    NoSignature(DigestAlgorithm)
 }
 
 impl SignatureAlgorithm {
@@ -370,12 +380,21 @@ impl SignatureAlgorithm {
                     }
                 },
             }
+        } else if oid == &OID_NO_SIGNATURE_ALGORITHM {
+            Ok(Self::NoSignature(digest_algorithm))
         } else {
             Err(Error::UnknownSignatureAlgorithm(format!(
                 "do not know how to resolve {} to a signature algorithm",
                 oid
             )))
         }
+    }
+
+    /// Creates an instance with the noSignature mechanism and [DigestAlgorithm]
+    pub fn from_digest_algorithm(
+        digest_algorithm: DigestAlgorithm,
+    ) -> Self {
+        Self::NoSignature(digest_algorithm)
     }
 
     /// Attempt to resolve the verification algorithm using info about the signing key algorithm.
@@ -424,6 +443,7 @@ impl SignatureAlgorithm {
             SignatureAlgorithm::EcdsaSha384 => Some(DigestAlgorithm::Sha384),
             // TODO there's got to be a digest algorithm, right?
             SignatureAlgorithm::Ed25519 => None,
+            SignatureAlgorithm::NoSignature(digest_algorithm) => Some(*digest_algorithm),
         }
     }
 }
@@ -438,6 +458,7 @@ impl Display for SignatureAlgorithm {
             SignatureAlgorithm::EcdsaSha256 => f.write_str("ECDSA with SHA-256"),
             SignatureAlgorithm::EcdsaSha384 => f.write_str("ECDSA with SHA-384"),
             SignatureAlgorithm::Ed25519 => f.write_str("ED25519"),
+            SignatureAlgorithm::NoSignature(digest_algorithm) => f.write_fmt(format_args!("No signature with {}", digest_algorithm)),
         }
     }
 }
@@ -452,6 +473,7 @@ impl From<SignatureAlgorithm> for Oid {
             SignatureAlgorithm::EcdsaSha256 => OID_ECDSA_SHA256.as_ref(),
             SignatureAlgorithm::EcdsaSha384 => OID_ECDSA_SHA384.as_ref(),
             SignatureAlgorithm::Ed25519 => OID_ED25519_SIGNATURE_ALGORITHM.as_ref(),
+            SignatureAlgorithm::NoSignature(_) => OID_NO_SIGNATURE_ALGORITHM.as_ref(),
         }
         .into())
     }
