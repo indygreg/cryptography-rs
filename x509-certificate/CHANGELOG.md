@@ -9,6 +9,7 @@ Released on ReleaseDate.
 * pem upgraded 1.1 -> 2.0.
 * ``SignatureAlgorithm`` gained a ``NoSignature`` variant to express a
   a digest without a signature. (#11)
+* ``chrono`` compiled without default features (#12).
 
 ## 0.19.0
 

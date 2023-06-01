@@ -7,6 +7,7 @@
 Released on ReleaseDate.
 
 * pem upgraded 1.1 -> 2.0.
+* ``chrono`` compiled without default features (#12).
 
 ## 0.22.0
 

@@ -14,7 +14,7 @@ readme = "README.md"
 [dependencies]
 bcder = "0.7.2"
 bytes = "1.4.0"
-chrono = "0.4.26"
+chrono = { version = "0.4.26", default-features = false }
 hex = "0.4.3"
 pem = "2.0.1"
 reqwest = { version = "0.11.18", default-features = false, features = ["blocking", "rustls-tls"] }

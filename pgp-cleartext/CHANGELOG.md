@@ -6,6 +6,8 @@
 
 Released on ReleaseDate.
 
+* ``chrono`` compiled without default features (#12).
+
 ## 0.7.0
 
 Released on 2023-04-08.
