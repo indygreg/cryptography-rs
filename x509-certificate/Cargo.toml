@@ -17,7 +17,7 @@ test = []
 [dependencies]
 bcder = "0.7.1"
 bytes = "1.4.0"
-chrono = "0.4.24"
+chrono = { version = "0.4.24", default_features = false }
 der = "0.7.3"
 hex = "0.4.3"
 pem = "2.0.1"
