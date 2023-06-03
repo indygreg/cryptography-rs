@@ -12,8 +12,8 @@ repository = "https://github.com/indygreg/cryptography-rs.git"
 readme = "README.md"
 
 [dependencies]
-chrono = "0.4.24"
-digest = "0.10.6"
+chrono = "0.4.26"
+digest = "0.10.7"
 md-5 = "0.10.5"
 pgp = "0.10.1"
 sha-1 = "0.10.1"

@@ -12,12 +12,12 @@ repository = "https://github.com/indygreg/cryptography-rs.git"
 readme = "README.md"
 
 [dependencies]
-bcder = "0.7.1"
+bcder = "0.7.2"
 bytes = "1.4.0"
-chrono = "0.4.24"
+chrono = "0.4.26"
 hex = "0.4.3"
 pem = "2.0.1"
-reqwest = { version = "0.11.16", default-features = false, features = ["blocking", "rustls-tls"] }
+reqwest = { version = "0.11.18", default-features = false, features = ["blocking", "rustls-tls"] }
 ring = "0.16.20"
 signature = { version = "2.1.0", features = ["std"] }
 
