@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.23.0
+
+Released on 2023-06-03.
+
 * pem upgraded 1.1 -> 2.0.
 * ``chrono`` compiled without default features (#12).
 

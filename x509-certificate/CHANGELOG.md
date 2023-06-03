@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.20.0
+
+Released on 2023-06-03.
+
 * pem upgraded 1.1 -> 2.0.
 * ``SignatureAlgorithm`` gained a ``NoSignature`` variant to express a
   a digest without a signature. (#11)
