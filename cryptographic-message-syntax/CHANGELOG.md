@@ -6,6 +6,9 @@
 
 Released on ReleaseDate.
 
+* `TimeStampResponse` is now exported in the public API.
+* `TimeStampResponse` now implements `From<TimeStampResp>`.
+
 ## 0.23.0
 
 Released on 2023-06-03.

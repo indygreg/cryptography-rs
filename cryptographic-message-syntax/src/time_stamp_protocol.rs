@@ -146,6 +146,12 @@ impl TimeStampResponse {
     }
 }
 
+impl From<TimeStampResp> for TimeStampResponse {
+    fn from(resp: TimeStampResp) -> Self {
+        Self(resp)
+    }
+}
+
 /// Send a [TimeStampReq] to a server via HTTP.
 pub fn time_stamp_request_http(
     url: impl IntoUrl,
