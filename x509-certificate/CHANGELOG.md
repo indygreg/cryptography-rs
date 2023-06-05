@@ -6,6 +6,8 @@
 
 Released on ReleaseDate.
 
+* `GeneralizedTime` implements `From<chrono::DateTime<chrono::Utc>>` (#13).
+
 ## 0.20.0
 
 Released on 2023-06-03.
