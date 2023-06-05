@@ -277,12 +277,8 @@ impl<'a> SignedDataBuilder<'a> {
         self
     }
 
-    /// Construct a DER-encoded ASN.1 document containing a `SignedData` object.
-    ///
-    /// RFC 5652 says `SignedData` is BER encoded. However, DER is a stricter subset
-    /// of BER. DER encodings are valid BER. So producing DER encoded data is perfectly
-    /// valid. We choose to go with the more well-defined encoding format.
-    pub fn build_der(&self) -> Result<Vec<u8>, CmsError> {
+    /// Construct a `SignedData` object from the parameters received so far.
+    pub fn build_signed_data(&self) -> Result<SignedData, CmsError> {
         let mut signer_infos = SignerInfos::default();
         let mut seen_digest_algorithms = HashSet::new();
         let mut seen_certificates = self.certificates.clone();
@@ -461,6 +457,17 @@ impl<'a> SignedDataBuilder<'a> {
             crls: None,
             signer_infos,
         };
+
+        Ok(signed_data)
+    }
+
+    /// Construct a DER-encoded ASN.1 document containing a `SignedData` object.
+    ///
+    /// RFC 5652 says `SignedData` is BER encoded. However, DER is a stricter subset
+    /// of BER. DER encodings are valid BER. So producing DER encoded data is perfectly
+    /// valid. We choose to go with the more well-defined encoding format.
+    pub fn build_der(&self) -> Result<Vec<u8>, CmsError> {
+        let signed_data = self.build_signed_data()?;
 
         let mut ber = Vec::new();
         signed_data
