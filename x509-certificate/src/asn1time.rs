@@ -323,6 +323,16 @@ impl From<GeneralizedTime> for chrono::DateTime<chrono::Utc> {
     }
 }
 
+impl From<chrono::DateTime<chrono::Utc>> for GeneralizedTime {
+    fn from(utc: chrono::DateTime<chrono::Utc>) -> Self {
+        Self {
+            time: utc.naive_utc(),
+            fractional_seconds: utc.timestamp_subsec_micros() > 0,
+            timezone: Zone::Utc,
+        }
+    }
+}
+
 impl PrimitiveContent for GeneralizedTime {
     const TAG: Tag = Tag::GENERALIZED_TIME;
 
