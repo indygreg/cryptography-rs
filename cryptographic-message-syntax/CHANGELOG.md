@@ -8,6 +8,9 @@ Released on ReleaseDate.
 
 * `TimeStampResponse` is now exported in the public API.
 * `TimeStampResponse` now implements `From<TimeStampResp>`.
+* New method `SignedDataBuilder::build_signed_data()` has been extracted from
+  `SignedDataBuilder::build_der()` and returns a `SignedData` instance,
+  allowing access to a Rust struct representation before serialization.
 
 ## 0.23.0
 
