@@ -79,7 +79,7 @@ pub use {
     bcder::Oid,
     bytes::Bytes,
     signing::{SignedDataBuilder, SignerBuilder},
-    time_stamp_protocol::{time_stamp_message_http, time_stamp_request_http, TimeStampError},
+    time_stamp_protocol::{time_stamp_message_http, time_stamp_request_http, TimeStampError, TimeStampResponse},
 };
 
 use {
