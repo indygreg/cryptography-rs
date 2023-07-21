@@ -673,7 +673,10 @@ impl SignedAttributes {
             .iter()
             .map(|x| {
                 let mut encoded = vec![];
-                x.values.write_encoded(Mode::Der, &mut encoded)?;
+                // See (https://github.com/indygreg/cryptography-rs/issues/16)
+                //The entire attribute must be encoded in order to be compared
+                //to a sibling attribute
+                x.encode_ref().write_encoded(Mode::Der, &mut encoded)?;
 
                 Ok((encoded, x.clone()))
             })
