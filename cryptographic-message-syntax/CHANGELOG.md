@@ -11,6 +11,10 @@ Released on ReleaseDate.
 * New method `SignedDataBuilder::build_signed_data()` has been extracted from
   `SignedDataBuilder::build_der()` and returns a `SignedData` instance,
   allowing access to a Rust struct representation before serialization.
+* `SignedAttributes` are now sorted by taking the serialization of the
+  entire `Attribute` (OID type + values). The previous implementation only
+  encoded the `Attribute`'s `attrValues` field and would not yield correct
+  sorting if the `attrType` OID was different. (#16)
 
 ## 0.23.0
 
