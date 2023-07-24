@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.24.0
+
+Released on 2023-07-24.
+
 * `TimeStampResponse` is now exported in the public API.
 * `TimeStampResponse` now implements `From<TimeStampResp>`.
 * New method `SignedDataBuilder::build_signed_data()` has been extracted from
