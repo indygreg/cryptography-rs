@@ -159,7 +159,7 @@ pub struct SignedData {
 impl SignedData {
     /// Attempt to decode BER encoded bytes to a parsed data structure.
     pub fn decode_ber(data: &[u8]) -> Result<Self, DecodeError<std::convert::Infallible>> {
-        Constructed::decode(data, bcder::Mode::Ber, |cons| Self::decode(cons))
+        Constructed::decode(data, bcder::Mode::Ber, Self::decode)
     }
 
     pub fn decode<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {

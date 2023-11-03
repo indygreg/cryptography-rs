@@ -114,7 +114,7 @@ impl TimeStampResponse {
             let source = token.content.clone();
 
             if token.content_type == OID_ID_SIGNED_DATA {
-                Ok(Some(source.decode(|cons| SignedData::take_from(cons))?))
+                Ok(Some(source.decode(SignedData::take_from)?))
             } else {
                 Err(source
                     .into_source()
@@ -132,7 +132,7 @@ impl TimeStampResponse {
                     Ok(Some(Constructed::decode(
                         content.to_bytes(),
                         bcder::Mode::Der,
-                        |cons| TstInfo::take_from(cons),
+                        TstInfo::take_from,
                     )?))
                 } else {
                     Ok(None)
@@ -181,7 +181,7 @@ pub fn time_stamp_request_http(
         let res = TimeStampResponse(Constructed::decode(
             response_bytes.as_ref(),
             bcder::Mode::Der,
-            |cons| TimeStampResp::take_from(cons),
+            TimeStampResp::take_from,
         )?);
 
         // Verify nonce was reflected, if present.

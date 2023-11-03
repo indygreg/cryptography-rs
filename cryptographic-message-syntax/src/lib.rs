@@ -886,7 +886,7 @@ impl TryFrom<&crate::asn1::rfc5652::SignerInfo> for SignerInfo {
                 .unwrap()
                 .deref()
                 .clone()
-                .decode(|cons| Oid::take_from(cons))
+                .decode(Oid::take_from)
                 .map_err(|_| CmsError::MalformedSignedAttributeContentType)?;
 
             // Message digest attribute MUST be present.
@@ -906,7 +906,7 @@ impl TryFrom<&crate::asn1::rfc5652::SignerInfo> for SignerInfo {
                 .unwrap()
                 .deref()
                 .clone()
-                .decode(|cons| OctetString::take_from(cons))
+                .decode(OctetString::take_from)
                 .map_err(|_| CmsError::MalformedSignedAttributeMessageDigest)?
                 .to_bytes()
                 .to_vec();
@@ -925,7 +925,7 @@ impl TryFrom<&crate::asn1::rfc5652::SignerInfo> for SignerInfo {
                             .unwrap()
                             .deref()
                             .clone()
-                            .decode(|cons| Time::take_from(cons))?;
+                            .decode(Time::take_from)?;
 
                         let time = chrono::DateTime::from(time);
 
