@@ -114,7 +114,7 @@ impl Signer<Signature> for InMemorySigningKeyPair {
     fn try_sign(&self, msg: &[u8]) -> Result<Signature, signature::Error> {
         match self {
             Self::Rsa(key, _) => {
-                let mut signature = vec![0; key.public_modulus_len()];
+                let mut signature = vec![0; key.public().modulus_len()];
 
                 key.sign(
                     &ringsig::RSA_PKCS1_SHA256,
@@ -232,7 +232,7 @@ impl InMemorySigningKeyPair {
                 Ok(Self::Rsa(pair, key.private_key.into_bytes().to_vec()))
             }
             KeyAlgorithm::Ecdsa(curve) => {
-                let pair = ringsig::EcdsaKeyPair::from_pkcs8(curve.into(), data.as_ref())?;
+                let pair = ringsig::EcdsaKeyPair::from_pkcs8(curve.into(), data.as_ref(), &SystemRandom::new())?;
 
                 Ok(Self::Ecdsa(pair, curve, data.as_ref().to_vec()))
             }

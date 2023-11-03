@@ -7,6 +7,7 @@
 Released on ReleaseDate.
 
 * `pem` 2.0 -> 3.0.
+* `ring` 0.16 -> 0.17.
 
 ## 0.24.0
 

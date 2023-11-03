@@ -6,7 +6,14 @@
 
 Released on ReleaseDate.
 
+* `rfc5958::OneAsymmetricKey` (PKCS#8) decoding now correctly handles the
+  public key field. Before, it decoded the public key field as a constructed
+  value when it should have been a regular tagged value. This bug was masked
+  by a bug in ring <0.17, which generated PKCS#8 documents incorrectly. The
+  new decoder only recognizes valid encoded PKCS#8 documents. Please open an
+  issue if you would like support for decoding the invalid format restored.
 * `pem` 2.0 -> 3.0.
+* `ring` 0.16 -> 0.17.
 
 ## 0.21.0
 

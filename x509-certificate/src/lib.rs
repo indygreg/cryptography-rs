@@ -113,7 +113,7 @@ pub enum X509CertificateError {
     UnsupportedSignatureVerification(KeyAlgorithm, SignatureAlgorithm),
 
     #[error("ring rejected loading private key: {0}")]
-    PrivateKeyRejected(&'static str),
+    PrivateKeyRejected(String),
 
     #[error("DER error: {0}")]
     Der(der::Error),
@@ -157,7 +157,7 @@ impl From<der::Error> for X509CertificateError {
 
 impl From<ring::error::KeyRejected> for X509CertificateError {
     fn from(e: ring::error::KeyRejected) -> Self {
-        Self::PrivateKeyRejected(e.description_())
+        Self::PrivateKeyRejected(e.to_string())
     }
 }
 
