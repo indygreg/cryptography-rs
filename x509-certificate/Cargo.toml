@@ -15,13 +15,13 @@ readme = "README.md"
 test = []
 
 [dependencies]
-bcder = "0.7.2"
-bytes = "1.4.0"
-chrono = { version = "0.4.26", default-features = false, features = ["clock"] }
-der = "0.7.7"
+bcder = "0.7.3"
+bytes = "1.5.0"
+chrono = { version = "0.4.31", default-features = false, features = ["clock"] }
+der = "0.7.8"
 hex = "0.4.3"
 pem = "2.0.1"
 ring = "0.16.20"
 signature = { version = "2.1.0", features = ["std"] }
 spki = { version = "0.7.2", features = ["alloc"] }
-thiserror = "1.0.44"
+thiserror = "1.0.50"
