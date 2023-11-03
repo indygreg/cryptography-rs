@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.25.0
+
+Released on 2023-11-03.
+
 * `pem` 2.0 -> 3.0.
 * `ring` 0.16 -> 0.17.
 

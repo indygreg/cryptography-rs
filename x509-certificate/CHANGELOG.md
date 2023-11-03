@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.22.0
+
+Released on 2023-11-03.
+
 * `rfc5958::OneAsymmetricKey` (PKCS#8) decoding now correctly handles the
   public key field. Before, it decoded the public key field as a constructed
   value when it should have been a regular tagged value. This bug was masked
