@@ -117,7 +117,7 @@ impl AlgorithmParameter {
     pub fn decode_oid(&self) -> Result<Oid, DecodeError<<BytesSource as Source>::Error>> {
         let source = BytesSource::new(Bytes::copy_from_slice(self.0.as_slice()));
 
-        Constructed::decode(source, Mode::Der, |cons| Oid::take_from(cons))
+        Constructed::decode(source, Mode::Der, Oid::take_from)
     }
 }
 
@@ -306,7 +306,7 @@ impl TbsCertificate {
                     UniqueIdentifier::take_from(cons)
                 })?;
                 let extensions =
-                    cons.take_opt_constructed_if(Tag::CTX_3, |cons| Extensions::take_from(cons))?;
+                    cons.take_opt_constructed_if(Tag::CTX_3, Extensions::take_from)?;
 
                 res = Some(Self {
                     version,
@@ -600,7 +600,7 @@ impl Extension {
     /// If this works, we return Some. Else None.
     pub fn try_decode_sequence_single_oid(&self) -> Option<Oid> {
         Constructed::decode(self.value.clone().into_source(), Mode::Der, |cons| {
-            cons.take_sequence(|cons| Oid::take_from(cons))
+            cons.take_sequence(Oid::take_from)
         })
         .ok()
     }

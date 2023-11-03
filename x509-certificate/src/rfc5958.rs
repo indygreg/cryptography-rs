@@ -131,7 +131,7 @@ impl TryFrom<&PrivateKey> for EcPrivateKey {
             v.as_slice()
                 .ok_or_else(|| source.content_err("missing private key data"))?,
             Mode::Der,
-            |cons| EcPrivateKey::take_from(cons),
+            EcPrivateKey::take_from,
         )
     }
 }
