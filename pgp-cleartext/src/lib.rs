@@ -647,7 +647,7 @@ where
         "".to_string(),
     ]
     .into_iter()
-    .chain(dashed_lines.into_iter())
+    .chain(dashed_lines)
     .chain(std::iter::once(signature_string))
     .collect::<Vec<_>>();
 
