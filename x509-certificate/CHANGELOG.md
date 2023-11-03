@@ -6,6 +6,8 @@
 
 Released on ReleaseDate.
 
+* `pem` 2.0 -> 3.0.
+
 ## 0.21.0
 
 Released on 2023-07-24.
