@@ -315,9 +315,9 @@ impl ToString for GeneralizedTime {
 impl From<GeneralizedTime> for chrono::DateTime<chrono::Utc> {
     fn from(gt: GeneralizedTime) -> Self {
         match gt.timezone {
-            Zone::Utc => chrono::DateTime::<chrono::Utc>::from_utc(gt.time, chrono::Utc),
+            Zone::Utc => chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(gt.time, chrono::Utc),
             Zone::Offset(offset) => {
-                chrono::DateTime::<chrono::Utc>::from_utc(gt.time.add(offset), chrono::Utc)
+                chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(gt.time.add(offset), chrono::Utc)
             }
         }
     }
