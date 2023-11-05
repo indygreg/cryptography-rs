@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.22.1
+
+Released on 2023-11-05.
+
 * `asn1time::UtcTime` now implements `From<chrono::DateTime<chrono::Utc>>`
   to facilitate constructing instances from arbitrary times.
 

@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.25.1
+
+Released on 2023-11-05.
+
 * `SignedDataBuilder` now stores a signing time and uses it for all signatures.
   Before, each signer would compute the current time and use that time, possibly
   resulting in signatures having slightly different times. The signing time
