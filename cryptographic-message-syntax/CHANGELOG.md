@@ -6,6 +6,12 @@
 
 Released on ReleaseDate.
 
+* `SignedDataBuilder` now stores a signing time and uses it for all signatures.
+  Before, each signer would compute the current time and use that time, possibly
+  resulting in signatures having slightly different times. The signing time
+  is computed at `SignedDataBuilder` construction time. A `signing_time()`
+  method can be used to pass a custom time to use for signing.
+
 ## 0.25.0
 
 Released on 2023-11-03.

@@ -206,6 +206,11 @@ pub struct SignedDataBuilder<'a> {
     /// present. But not all data producers use the same OID and this
     /// can cause problems. So we allow overriding the default.
     content_type: Oid,
+
+    /// The signing time to include in signatures.
+    ///
+    /// All signatures will use the same time.
+    signing_time: UtcTime,
 }
 
 impl<'a> Default for SignedDataBuilder<'a> {
@@ -215,6 +220,7 @@ impl<'a> Default for SignedDataBuilder<'a> {
             signers: vec![],
             certificates: vec![],
             content_type: Oid(OID_ID_SIGNED_DATA.as_ref().into()),
+            signing_time: UtcTime::now(),
         }
     }
 }
@@ -274,6 +280,15 @@ impl<'a> SignedDataBuilder<'a> {
     #[must_use]
     pub fn content_type(mut self, oid: Oid) -> Self {
         self.content_type = oid;
+        self
+    }
+
+    /// Specify the signing time to use in signatures.
+    ///
+    /// If not called, current time at struct construction will be used.
+    #[must_use]
+    pub fn signing_time(mut self, time: UtcTime) -> Self {
+        self.signing_time = time;
         self
     }
 
@@ -341,7 +356,7 @@ impl<'a> SignedDataBuilder<'a> {
                 typ: Oid(Bytes::copy_from_slice(OID_SIGNING_TIME.as_ref())),
                 values: vec![AttributeValue::new(Captured::from_values(
                     Mode::Der,
-                    UtcTime::now().encode(),
+                    self.signing_time.clone().encode(),
                 ))],
             });
 
