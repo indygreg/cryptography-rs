@@ -315,10 +315,13 @@ impl ToString for GeneralizedTime {
 impl From<GeneralizedTime> for chrono::DateTime<chrono::Utc> {
     fn from(gt: GeneralizedTime) -> Self {
         match gt.timezone {
-            Zone::Utc => chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(gt.time, chrono::Utc),
-            Zone::Offset(offset) => {
-                chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(gt.time.add(offset), chrono::Utc)
+            Zone::Utc => {
+                chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(gt.time, chrono::Utc)
             }
+            Zone::Offset(offset) => chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
+                gt.time.add(offset),
+                chrono::Utc,
+            ),
         }
     }
 }
@@ -347,6 +350,12 @@ impl PrimitiveContent for GeneralizedTime {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct UtcTime(chrono::DateTime<chrono::Utc>);
+
+impl From<chrono::DateTime<chrono::Utc>> for UtcTime {
+    fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
+        Self(value)
+    }
+}
 
 impl UtcTime {
     /// Obtain a new instance with now as the time.
