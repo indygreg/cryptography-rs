@@ -14,6 +14,7 @@ use {
         signature::{self as ringsig, KeyPair},
     },
     signature::{SignatureEncoding as SignatureTrait, Signer},
+    zeroize::Zeroizing,
 };
 
 /// Signifies that an entity is capable of producing cryptographic signatures.
@@ -101,13 +102,13 @@ impl TryFrom<&[u8]> for Signature {
 #[derive(Debug)]
 pub enum InMemorySigningKeyPair {
     /// ECDSA key pair.
-    Ecdsa(ringsig::EcdsaKeyPair, EcdsaCurve, Vec<u8>),
+    Ecdsa(ringsig::EcdsaKeyPair, EcdsaCurve, Zeroizing<Vec<u8>>),
 
     /// ED25519 key pair.
     Ed25519(ringsig::Ed25519KeyPair),
 
     /// RSA key pair.
-    Rsa(ringsig::RsaKeyPair, Vec<u8>),
+    Rsa(ringsig::RsaKeyPair, Zeroizing<Vec<u8>>),
 }
 
 impl Signer<Signature> for InMemorySigningKeyPair {
@@ -188,8 +189,8 @@ impl Sign for InMemorySigningKeyPair {
 
     fn private_key_data(&self) -> Option<Vec<u8>> {
         match self {
-            Self::Rsa(_, data) => Some(data.clone()),
-            Self::Ecdsa(_, _, data) => Some(data.clone()),
+            Self::Rsa(_, data) => Some(data.to_vec()),
+            Self::Ecdsa(_, _, data) => Some(data.to_vec()),
             Self::Ed25519(_) => None,
         }
     }
@@ -229,12 +230,23 @@ impl InMemorySigningKeyPair {
             KeyAlgorithm::Rsa => {
                 let pair = ringsig::RsaKeyPair::from_pkcs8(data.as_ref())?;
 
-                Ok(Self::Rsa(pair, key.private_key.into_bytes().to_vec()))
+                Ok(Self::Rsa(
+                    pair,
+                    Zeroizing::new(key.private_key.into_bytes().to_vec()),
+                ))
             }
             KeyAlgorithm::Ecdsa(curve) => {
-                let pair = ringsig::EcdsaKeyPair::from_pkcs8(curve.into(), data.as_ref(), &SystemRandom::new())?;
+                let pair = ringsig::EcdsaKeyPair::from_pkcs8(
+                    curve.into(),
+                    data.as_ref(),
+                    &SystemRandom::new(),
+                )?;
 
-                Ok(Self::Ecdsa(pair, curve, data.as_ref().to_vec()))
+                Ok(Self::Ecdsa(
+                    pair,
+                    curve,
+                    Zeroizing::new(data.as_ref().to_vec()),
+                ))
             }
             KeyAlgorithm::Ed25519 => Ok(Self::Ed25519(ringsig::Ed25519KeyPair::from_pkcs8(
                 data.as_ref(),

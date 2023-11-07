@@ -6,6 +6,9 @@
 
 Released on ReleaseDate.
 
+* `InMemorySigningKeyPair` now stores the private key as a
+  `Zeroize<Vec<u8>>` instead of a `Vec<u8>`. The public API is not changed.
+
 ## 0.22.1
 
 Released on 2023-11-05.

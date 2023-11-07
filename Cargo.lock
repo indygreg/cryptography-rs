@@ -2033,6 +2033,7 @@ dependencies = [
  "signature",
  "spki",
  "thiserror",
+ "zeroize",
 ]
 
 [[package]]
