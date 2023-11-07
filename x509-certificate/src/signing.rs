@@ -9,6 +9,7 @@ use {
     },
     bcder::decode::Constructed,
     bytes::Bytes,
+    der::SecretDocument,
     ring::{
         rand::SystemRandom,
         signature::{self as ringsig, KeyPair},
@@ -98,6 +99,7 @@ impl TryFrom<&[u8]> for Signature {
 /// An ECDSA key pair.
 #[derive(Debug)]
 pub struct EcdsaKeyPair {
+    pkcs8_der: SecretDocument,
     ring_pair: ringsig::EcdsaKeyPair,
     curve: EcdsaCurve,
     private_key: Zeroizing<Vec<u8>>,
@@ -106,12 +108,14 @@ pub struct EcdsaKeyPair {
 /// An ED25519 key pair.
 #[derive(Debug)]
 pub struct Ed25519KeyPair {
+    pkcs8_der: SecretDocument,
     ring_pair: ringsig::Ed25519KeyPair,
 }
 
 /// An RSA key pair.
 #[derive(Debug)]
 pub struct RsaKeyPair {
+    pkcs8_der: SecretDocument,
     ring_pair: ringsig::RsaKeyPair,
     private_key: Zeroizing<Vec<u8>>,
 }
@@ -240,6 +244,8 @@ impl InMemorySigningKeyPair {
     ///
     /// The DER data should be a [OneAsymmetricKey] ASN.1 structure.
     pub fn from_pkcs8_der(data: impl AsRef<[u8]>) -> Result<Self, Error> {
+        let pkcs8_der = SecretDocument::try_from(data.as_ref())?;
+
         // We need to parse the PKCS#8 to know what kind of key we're dealing with.
         let key = Constructed::decode(data.as_ref(), bcder::Mode::Der, |cons| {
             OneAsymmetricKey::take_from(cons)
@@ -254,6 +260,7 @@ impl InMemorySigningKeyPair {
                 let pair = ringsig::RsaKeyPair::from_pkcs8(data.as_ref())?;
 
                 Ok(Self::Rsa(RsaKeyPair {
+                    pkcs8_der,
                     ring_pair: pair,
                     private_key: Zeroizing::new(key.private_key.into_bytes().to_vec()),
                 }))
@@ -266,12 +273,14 @@ impl InMemorySigningKeyPair {
                 )?;
 
                 Ok(Self::Ecdsa(EcdsaKeyPair {
+                    pkcs8_der,
                     ring_pair: pair,
                     curve,
                     private_key: Zeroizing::new(data.as_ref().to_vec()),
                 }))
             }
             KeyAlgorithm::Ed25519 => Ok(Self::Ed25519(Ed25519KeyPair {
+                pkcs8_der,
                 ring_pair: ringsig::Ed25519KeyPair::from_pkcs8(data.as_ref())?,
             })),
         }
@@ -324,14 +333,14 @@ impl InMemorySigningKeyPair {
             "illegal combination of key algorithm in signature algorithm: this should not occur"
         ))
     }
-}
 
-// We don't support coercing from EcdsaKeyPair because we don't know what the
-// elliptic curve is since ring doesn't expose it.
-
-impl From<ringsig::Ed25519KeyPair> for InMemorySigningKeyPair {
-    fn from(key: ringsig::Ed25519KeyPair) -> Self {
-        Self::Ed25519(Ed25519KeyPair { ring_pair: key })
+    /// Serialize this instance to a PKCS#8 [OneAsymmetricKey] ASN.1 structure.
+    pub fn to_pkcs8_one_asymmetric_key_der(&self) -> Zeroizing<Vec<u8>> {
+        match self {
+            Self::Ecdsa(kp) => kp.pkcs8_der.to_bytes(),
+            Self::Ed25519(kp) => kp.pkcs8_der.to_bytes(),
+            Self::Rsa(kp) => kp.pkcs8_der.to_bytes(),
+        }
     }
 }
 
