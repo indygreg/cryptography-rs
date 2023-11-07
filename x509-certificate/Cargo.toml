@@ -18,7 +18,7 @@ test = []
 bcder = "0.7.3"
 bytes = "1.5.0"
 chrono = { version = "0.4.31", default-features = false, features = ["clock"] }
-der = "0.7.8"
+der = { version = "0.7.8", features = ["alloc", "zeroize"] }
 hex = "0.4.3"
 pem = "3.0.2"
 ring = "0.17.5"
