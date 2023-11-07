@@ -952,15 +952,8 @@ impl X509CertificateBuilder {
     /// Create a new certificate given settings, using a randomly generated key pair.
     pub fn create_with_random_keypair(
         &self,
-    ) -> Result<
-        (
-            CapturedX509Certificate,
-            InMemorySigningKeyPair,
-            ring::pkcs8::Document,
-        ),
-        Error,
-    > {
-        let (key_pair, document) = InMemorySigningKeyPair::generate_random(self.key_algorithm)?;
+    ) -> Result<(CapturedX509Certificate, InMemorySigningKeyPair), Error> {
+        let key_pair = InMemorySigningKeyPair::generate_random(self.key_algorithm)?.0;
 
         let key_pair_signature_algorithm = key_pair.signature_algorithm();
 
@@ -1018,7 +1011,7 @@ impl X509CertificateBuilder {
 
         let cert = CapturedX509Certificate::from_der(cert_der)?;
 
-        Ok((cert, key_pair, document))
+        Ok((cert, key_pair))
     }
 
     /// Create a new certificate signing request (CSR).

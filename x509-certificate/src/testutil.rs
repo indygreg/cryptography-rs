@@ -82,7 +82,7 @@ pub fn self_signed_ecdsa_key_pair(
         .append_country_utf8_string("Wakanda")
         .unwrap();
 
-    let (cert, signing_key, _) = builder.create_with_random_keypair().unwrap();
+    let (cert, signing_key) = builder.create_with_random_keypair().unwrap();
 
     (cert, signing_key)
 }
@@ -100,7 +100,7 @@ pub fn self_signed_ed25519_key_pair() -> (CapturedX509Certificate, InMemorySigni
         .append_country_utf8_string("Wakanda")
         .unwrap();
 
-    let (cert, signing_key, _) = builder.create_with_random_keypair().unwrap();
+    let (cert, signing_key) = builder.create_with_random_keypair().unwrap();
 
     (cert, signing_key)
 }

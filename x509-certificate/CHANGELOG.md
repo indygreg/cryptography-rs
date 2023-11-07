@@ -14,6 +14,9 @@ Released on ReleaseDate.
   `From<ring::signature::Ed25519KeyPair>`.
 * `InMemorySigningKeyPair` now has a `to_pkcs8_one_asymmetric_key_der()` method
   to obtain this PKCS#8 DER representation of the key pair.
+* `X509CertificateBuilder::create_with_random_keypair()` no longer returns
+  a `ring::pkcs8::Document`. (The PKCS#8 representation can now be obtained
+  from the returned `InMemorySigningKeyPair`.)
 
 ## 0.22.1
 
