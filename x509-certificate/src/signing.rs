@@ -95,6 +95,27 @@ impl TryFrom<&[u8]> for Signature {
     }
 }
 
+/// An ECDSA key pair.
+#[derive(Debug)]
+pub struct EcdsaKeyPair {
+    ring_pair: ringsig::EcdsaKeyPair,
+    curve: EcdsaCurve,
+    private_key: Zeroizing<Vec<u8>>,
+}
+
+/// An ED25519 key pair.
+#[derive(Debug)]
+pub struct Ed25519KeyPair {
+    ring_pair: ringsig::Ed25519KeyPair,
+}
+
+/// An RSA key pair.
+#[derive(Debug)]
+pub struct RsaKeyPair {
+    ring_pair: ringsig::RsaKeyPair,
+    private_key: Zeroizing<Vec<u8>>,
+}
+
 /// Represents a key pair that exists in memory and can be used to create cryptographic signatures.
 ///
 /// This is a wrapper around ring's various key pair types. It provides
@@ -102,40 +123,42 @@ impl TryFrom<&[u8]> for Signature {
 #[derive(Debug)]
 pub enum InMemorySigningKeyPair {
     /// ECDSA key pair.
-    Ecdsa(ringsig::EcdsaKeyPair, EcdsaCurve, Zeroizing<Vec<u8>>),
+    Ecdsa(EcdsaKeyPair),
 
     /// ED25519 key pair.
-    Ed25519(ringsig::Ed25519KeyPair),
+    Ed25519(Ed25519KeyPair),
 
     /// RSA key pair.
-    Rsa(ringsig::RsaKeyPair, Zeroizing<Vec<u8>>),
+    Rsa(RsaKeyPair),
 }
 
 impl Signer<Signature> for InMemorySigningKeyPair {
     fn try_sign(&self, msg: &[u8]) -> Result<Signature, signature::Error> {
         match self {
-            Self::Rsa(key, _) => {
-                let mut signature = vec![0; key.public().modulus_len()];
+            Self::Rsa(kp) => {
+                let mut signature = vec![0; kp.ring_pair.public().modulus_len()];
 
-                key.sign(
-                    &ringsig::RSA_PKCS1_SHA256,
-                    &ring::rand::SystemRandom::new(),
-                    msg,
-                    &mut signature,
-                )
-                .map_err(|_| signature::Error::new())?;
+                kp.ring_pair
+                    .sign(
+                        &ringsig::RSA_PKCS1_SHA256,
+                        &ring::rand::SystemRandom::new(),
+                        msg,
+                        &mut signature,
+                    )
+                    .map_err(|_| signature::Error::new())?;
 
                 Ok(signature.into())
             }
-            Self::Ecdsa(key, _, _) => {
-                let signature = key
+            Self::Ecdsa(kp) => {
+                let signature = kp
+                    .ring_pair
                     .sign(&ring::rand::SystemRandom::new(), msg)
                     .map_err(|_| signature::Error::new())?;
 
                 Ok(Signature::from(signature.as_ref().to_vec()))
             }
-            Self::Ed25519(key) => {
-                let signature = key.sign(msg);
+            Self::Ed25519(kp) => {
+                let signature = kp.ring_pair.sign(msg);
 
                 Ok(Signature::from(signature.as_ref().to_vec()))
             }
@@ -157,28 +180,28 @@ impl Sign for InMemorySigningKeyPair {
 
     fn key_algorithm(&self) -> Option<KeyAlgorithm> {
         Some(match self {
-            Self::Rsa(_, _) => KeyAlgorithm::Rsa,
+            Self::Rsa(_) => KeyAlgorithm::Rsa,
             Self::Ed25519(_) => KeyAlgorithm::Ed25519,
-            Self::Ecdsa(_, curve, _) => KeyAlgorithm::Ecdsa(*curve),
+            Self::Ecdsa(kp) => KeyAlgorithm::Ecdsa(kp.curve),
         })
     }
 
     fn public_key_data(&self) -> Bytes {
         match self {
-            Self::Rsa(key, _) => Bytes::copy_from_slice(key.public_key().as_ref()),
-            Self::Ecdsa(key, _, _) => Bytes::copy_from_slice(key.public_key().as_ref()),
-            Self::Ed25519(key) => Bytes::copy_from_slice(key.public_key().as_ref()),
+            Self::Rsa(kp) => Bytes::copy_from_slice(kp.ring_pair.public_key().as_ref()),
+            Self::Ecdsa(kp) => Bytes::copy_from_slice(kp.ring_pair.public_key().as_ref()),
+            Self::Ed25519(kp) => Bytes::copy_from_slice(kp.ring_pair.public_key().as_ref()),
         }
     }
 
     fn signature_algorithm(&self) -> Result<SignatureAlgorithm, Error> {
         Ok(match self {
-            Self::Rsa(_, _) => SignatureAlgorithm::RsaSha256,
-            Self::Ecdsa(_, curve, _) => {
+            Self::Rsa(_) => SignatureAlgorithm::RsaSha256,
+            Self::Ecdsa(kp) => {
                 // ring refuses to mix and match the bitness of curves and signature
                 // algorithms. e.g. it can't pair secp256r1 with SHA-384. It chooses
                 // signatures on its own. We reimplement that logic here.
-                match curve {
+                match kp.curve {
                     EcdsaCurve::Secp256r1 => SignatureAlgorithm::EcdsaSha256,
                     EcdsaCurve::Secp384r1 => SignatureAlgorithm::EcdsaSha384,
                 }
@@ -189,22 +212,22 @@ impl Sign for InMemorySigningKeyPair {
 
     fn private_key_data(&self) -> Option<Vec<u8>> {
         match self {
-            Self::Rsa(_, data) => Some(data.to_vec()),
-            Self::Ecdsa(_, _, data) => Some(data.to_vec()),
+            Self::Rsa(kp) => Some(kp.private_key.to_vec()),
+            Self::Ecdsa(kp) => Some(kp.private_key.to_vec()),
             Self::Ed25519(_) => None,
         }
     }
 
     fn rsa_primes(&self) -> Result<Option<(Vec<u8>, Vec<u8>)>, Error> {
         match self {
-            Self::Rsa(_, data) => {
-                let key = Constructed::decode(data.as_ref(), bcder::Mode::Der, |cons| {
+            Self::Rsa(kp) => {
+                let key = Constructed::decode(kp.private_key.as_ref(), bcder::Mode::Der, |cons| {
                     RsaPrivateKey::take_from(cons)
                 })?;
 
                 Ok(Some((key.p.as_slice().to_vec(), key.q.as_slice().to_vec())))
             }
-            Self::Ecdsa(..) => Ok(None),
+            Self::Ecdsa(_) => Ok(None),
             Self::Ed25519(_) => Ok(None),
         }
     }
@@ -230,10 +253,10 @@ impl InMemorySigningKeyPair {
             KeyAlgorithm::Rsa => {
                 let pair = ringsig::RsaKeyPair::from_pkcs8(data.as_ref())?;
 
-                Ok(Self::Rsa(
-                    pair,
-                    Zeroizing::new(key.private_key.into_bytes().to_vec()),
-                ))
+                Ok(Self::Rsa(RsaKeyPair {
+                    ring_pair: pair,
+                    private_key: Zeroizing::new(key.private_key.into_bytes().to_vec()),
+                }))
             }
             KeyAlgorithm::Ecdsa(curve) => {
                 let pair = ringsig::EcdsaKeyPair::from_pkcs8(
@@ -242,15 +265,15 @@ impl InMemorySigningKeyPair {
                     &SystemRandom::new(),
                 )?;
 
-                Ok(Self::Ecdsa(
-                    pair,
+                Ok(Self::Ecdsa(EcdsaKeyPair {
+                    ring_pair: pair,
                     curve,
-                    Zeroizing::new(data.as_ref().to_vec()),
-                ))
+                    private_key: Zeroizing::new(data.as_ref().to_vec()),
+                }))
             }
-            KeyAlgorithm::Ed25519 => Ok(Self::Ed25519(ringsig::Ed25519KeyPair::from_pkcs8(
-                data.as_ref(),
-            )?)),
+            KeyAlgorithm::Ed25519 => Ok(Self::Ed25519(Ed25519KeyPair {
+                ring_pair: ringsig::Ed25519KeyPair::from_pkcs8(data.as_ref())?,
+            })),
         }
     }
 
@@ -308,15 +331,15 @@ impl InMemorySigningKeyPair {
 
 impl From<ringsig::Ed25519KeyPair> for InMemorySigningKeyPair {
     fn from(key: ringsig::Ed25519KeyPair) -> Self {
-        Self::Ed25519(key)
+        Self::Ed25519(Ed25519KeyPair { ring_pair: key })
     }
 }
 
 impl From<&InMemorySigningKeyPair> for KeyAlgorithm {
     fn from(key: &InMemorySigningKeyPair) -> Self {
         match key {
-            InMemorySigningKeyPair::Rsa(_, _) => KeyAlgorithm::Rsa,
-            InMemorySigningKeyPair::Ecdsa(_, curve, _) => KeyAlgorithm::Ecdsa(*curve),
+            InMemorySigningKeyPair::Rsa(_) => KeyAlgorithm::Rsa,
+            InMemorySigningKeyPair::Ecdsa(kp) => KeyAlgorithm::Ecdsa(kp.curve),
             InMemorySigningKeyPair::Ed25519(_) => KeyAlgorithm::Ed25519,
         }
     }
@@ -354,18 +377,12 @@ mod test {
             let doc = ringsig::EcdsaKeyPair::generate_pkcs8(alg, &rng).unwrap();
 
             let signing_key = InMemorySigningKeyPair::from_pkcs8_der(doc.as_ref()).unwrap();
-            assert!(matches!(
-                signing_key,
-                InMemorySigningKeyPair::Ecdsa(_, _, _)
-            ));
+            assert!(matches!(signing_key, InMemorySigningKeyPair::Ecdsa(_,)));
 
             let pem_data = pem::Pem::new("PRIVATE KEY", doc.as_ref()).to_string();
 
             let signing_key = InMemorySigningKeyPair::from_pkcs8_pem(pem_data.as_bytes()).unwrap();
-            assert!(matches!(
-                signing_key,
-                InMemorySigningKeyPair::Ecdsa(_, _, _)
-            ));
+            assert!(matches!(signing_key, InMemorySigningKeyPair::Ecdsa(_)));
 
             let key_pair_asn1 = Constructed::decode(doc.as_ref(), bcder::Mode::Der, |cons| {
                 OneAsymmetricKey::take_from(cons)

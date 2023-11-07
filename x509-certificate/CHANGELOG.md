@@ -7,7 +7,9 @@
 Released on ReleaseDate.
 
 * `InMemorySigningKeyPair` now stores the private key as a
-  `Zeroize<Vec<u8>>` instead of a `Vec<u8>`. The public API is not changed.
+  `Zeroize<Vec<u8>>` instead of a `Vec<u8>`.
+* `InMemorySigningKeyPair` variants are now structs instead of
+  unnamed tuples.
 
 ## 0.22.1
 
