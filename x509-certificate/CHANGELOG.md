@@ -27,6 +27,9 @@ Released on ReleaseDate.
   `KeyAlgorithm` argument.
 * `X509CertificateBuilder` has gained a `create_with_key_pair()` method that
   allows creating a certificate with a caller specified key pair.
+* `Sign::private_key_data()` now returns a `Zeroizing<Vec<u8>>` instead of a
+  `Vec<u8>`.
+* `Sign::rsa_primes()` now returns `Zeroizing<Vec<u8>>` instead of `Vec<u8>`.
 
 ## 0.22.1
 

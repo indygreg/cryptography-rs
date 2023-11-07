@@ -48,10 +48,10 @@ pub trait Sign {
     fn signature_algorithm(&self) -> Result<SignatureAlgorithm, Error>;
 
     /// Obtain the raw private key data.
-    fn private_key_data(&self) -> Option<Vec<u8>>;
+    fn private_key_data(&self) -> Option<Zeroizing<Vec<u8>>>;
 
     /// Obtain RSA key primes p and q, if available.
-    fn rsa_primes(&self) -> Result<Option<(Vec<u8>, Vec<u8>)>, Error>;
+    fn rsa_primes(&self) -> Result<Option<(Zeroizing<Vec<u8>>, Zeroizing<Vec<u8>>)>, Error>;
 }
 
 /// A superset of [Signer] and [Sign].
@@ -214,22 +214,25 @@ impl Sign for InMemorySigningKeyPair {
         })
     }
 
-    fn private_key_data(&self) -> Option<Vec<u8>> {
+    fn private_key_data(&self) -> Option<Zeroizing<Vec<u8>>> {
         match self {
-            Self::Rsa(kp) => Some(kp.private_key.to_vec()),
-            Self::Ecdsa(kp) => Some(kp.private_key.to_vec()),
+            Self::Rsa(kp) => Some(kp.private_key.clone()),
+            Self::Ecdsa(kp) => Some(kp.private_key.clone()),
             Self::Ed25519(_) => None,
         }
     }
 
-    fn rsa_primes(&self) -> Result<Option<(Vec<u8>, Vec<u8>)>, Error> {
+    fn rsa_primes(&self) -> Result<Option<(Zeroizing<Vec<u8>>, Zeroizing<Vec<u8>>)>, Error> {
         match self {
             Self::Rsa(kp) => {
                 let key = Constructed::decode(kp.private_key.as_ref(), bcder::Mode::Der, |cons| {
                     RsaPrivateKey::take_from(cons)
                 })?;
 
-                Ok(Some((key.p.as_slice().to_vec(), key.q.as_slice().to_vec())))
+                Ok(Some((
+                    Zeroizing::new(key.p.as_slice().to_vec()),
+                    Zeroizing::new(key.q.as_slice().to_vec()),
+                )))
             }
             Self::Ecdsa(_) => Ok(None),
             Self::Ed25519(_) => Ok(None),
