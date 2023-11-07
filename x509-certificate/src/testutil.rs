@@ -70,8 +70,7 @@ pub fn rsa_cert() -> CapturedX509Certificate {
 pub fn self_signed_ecdsa_key_pair(
     curve: Option<EcdsaCurve>,
 ) -> (CapturedX509Certificate, InMemorySigningKeyPair) {
-    let mut builder =
-        X509CertificateBuilder::new(KeyAlgorithm::Ecdsa(curve.unwrap_or(EcdsaCurve::Secp256r1)));
+    let mut builder = X509CertificateBuilder::new();
 
     builder
         .subject()
@@ -82,14 +81,16 @@ pub fn self_signed_ecdsa_key_pair(
         .append_country_utf8_string("Wakanda")
         .unwrap();
 
-    let (cert, signing_key) = builder.create_with_random_keypair().unwrap();
+    let (cert, signing_key) = builder
+        .create_with_random_keypair(KeyAlgorithm::Ecdsa(curve.unwrap_or(EcdsaCurve::Secp256r1)))
+        .unwrap();
 
     (cert, signing_key)
 }
 
 /// Obtain a self-signed certificate using a randomly generated ED25519 key pair.
 pub fn self_signed_ed25519_key_pair() -> (CapturedX509Certificate, InMemorySigningKeyPair) {
-    let mut builder = X509CertificateBuilder::new(KeyAlgorithm::Ed25519);
+    let mut builder = X509CertificateBuilder::new();
 
     builder
         .subject()
@@ -100,7 +101,9 @@ pub fn self_signed_ed25519_key_pair() -> (CapturedX509Certificate, InMemorySigni
         .append_country_utf8_string("Wakanda")
         .unwrap();
 
-    let (cert, signing_key) = builder.create_with_random_keypair().unwrap();
+    let (cert, signing_key) = builder
+        .create_with_random_keypair(KeyAlgorithm::Ed25519)
+        .unwrap();
 
     (cert, signing_key)
 }

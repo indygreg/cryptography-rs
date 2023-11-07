@@ -850,7 +850,6 @@ impl From<KeyUsage> for u8 {
 /// This type can also be used to produce certificate signing requests. In this mode,
 /// only the subject value and additional registered attributes are meaningful.
 pub struct X509CertificateBuilder {
-    key_algorithm: KeyAlgorithm,
     subject: Name,
     issuer: Option<Name>,
     extensions: rfc5280::Extensions,
@@ -861,12 +860,11 @@ pub struct X509CertificateBuilder {
 }
 
 impl X509CertificateBuilder {
-    pub fn new(alg: KeyAlgorithm) -> Self {
+    pub fn new() -> Self {
         let not_before = Utc::now();
         let not_after = not_before + Duration::hours(1);
 
         Self {
-            key_algorithm: alg,
             subject: Name::default(),
             issuer: None,
             extensions: rfc5280::Extensions::default(),
@@ -949,12 +947,11 @@ impl X509CertificateBuilder {
         self.csr_attributes.push(attribute);
     }
 
-    /// Create a new certificate given settings, using a randomly generated key pair.
-    pub fn create_with_random_keypair(
+    /// Create a new certificate given settings using the provided key pair.
+    pub fn create_with_key_pair(
         &self,
-    ) -> Result<(CapturedX509Certificate, InMemorySigningKeyPair), Error> {
-        let key_pair = InMemorySigningKeyPair::generate_random(self.key_algorithm)?;
-
+        key_pair: &InMemorySigningKeyPair,
+    ) -> Result<CapturedX509Certificate, Error> {
         let key_pair_signature_algorithm = key_pair.signature_algorithm();
 
         let issuer = if let Some(issuer) = &self.issuer {
@@ -1009,7 +1006,16 @@ impl X509CertificateBuilder {
         let cert = X509Certificate::from(cert);
         let cert_der = cert.encode_der()?;
 
-        let cert = CapturedX509Certificate::from_der(cert_der)?;
+        CapturedX509Certificate::from_der(cert_der)
+    }
+
+    /// Create a new certificate given settings, using a randomly generated key pair.
+    pub fn create_with_random_keypair(
+        &self,
+        key_algorithm: KeyAlgorithm,
+    ) -> Result<(CapturedX509Certificate, InMemorySigningKeyPair), Error> {
+        let key_pair = InMemorySigningKeyPair::generate_random(key_algorithm)?;
+        let cert = self.create_with_key_pair(&key_pair)?;
 
         Ok((cert, key_pair))
     }
@@ -1068,8 +1074,10 @@ mod test {
 
     #[test]
     fn builder_ed25519_default() {
-        let builder = X509CertificateBuilder::new(KeyAlgorithm::Ed25519);
-        builder.create_with_random_keypair().unwrap();
+        let builder = X509CertificateBuilder::new();
+        builder
+            .create_with_random_keypair(KeyAlgorithm::Ed25519)
+            .unwrap();
     }
 
     #[test]
@@ -1077,14 +1085,14 @@ mod test {
         for curve in EcdsaCurve::all() {
             let key_algorithm = KeyAlgorithm::Ecdsa(*curve);
 
-            let builder = X509CertificateBuilder::new(key_algorithm);
-            builder.create_with_random_keypair().unwrap();
+            let builder = X509CertificateBuilder::new();
+            builder.create_with_random_keypair(key_algorithm).unwrap();
         }
     }
 
     #[test]
     fn build_subject_populate() {
-        let mut builder = X509CertificateBuilder::new(KeyAlgorithm::Ed25519);
+        let mut builder = X509CertificateBuilder::new();
         builder
             .subject()
             .append_common_name_utf8_string("My Name")
@@ -1094,7 +1102,9 @@ mod test {
             .append_country_utf8_string("Wakanda")
             .unwrap();
 
-        builder.create_with_random_keypair().unwrap();
+        builder
+            .create_with_random_keypair(KeyAlgorithm::Ed25519)
+            .unwrap();
     }
 
     #[test]
@@ -1104,7 +1114,7 @@ mod test {
 
             let key = InMemorySigningKeyPair::generate_random(key_algorithm)?;
 
-            let builder = X509CertificateBuilder::new(key_algorithm);
+            let builder = X509CertificateBuilder::new();
 
             let csr = builder.create_certificate_signing_request(&key)?;
 
