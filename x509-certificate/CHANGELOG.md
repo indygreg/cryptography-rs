@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.23.0
+
+Released on 2023-11-07.
+
 * `InMemorySigningKeyPair` now stores the private key as a
   `Zeroize<Vec<u8>>` instead of a `Vec<u8>`.
 * `InMemorySigningKeyPair` variants are now structs instead of
