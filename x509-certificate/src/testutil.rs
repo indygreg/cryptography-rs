@@ -70,7 +70,7 @@ pub fn rsa_cert() -> CapturedX509Certificate {
 pub fn self_signed_ecdsa_key_pair(
     curve: Option<EcdsaCurve>,
 ) -> (CapturedX509Certificate, InMemorySigningKeyPair) {
-    let mut builder = X509CertificateBuilder::new();
+    let mut builder = X509CertificateBuilder::default();
 
     builder
         .subject()
@@ -90,7 +90,7 @@ pub fn self_signed_ecdsa_key_pair(
 
 /// Obtain a self-signed certificate using a randomly generated ED25519 key pair.
 pub fn self_signed_ed25519_key_pair() -> (CapturedX509Certificate, InMemorySigningKeyPair) {
-    let mut builder = X509CertificateBuilder::new();
+    let mut builder = X509CertificateBuilder::default();
 
     builder
         .subject()

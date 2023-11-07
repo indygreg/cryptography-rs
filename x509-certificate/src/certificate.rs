@@ -859,8 +859,8 @@ pub struct X509CertificateBuilder {
     csr_attributes: Attributes,
 }
 
-impl X509CertificateBuilder {
-    pub fn new() -> Self {
+impl Default for X509CertificateBuilder {
+    fn default() -> Self {
         let not_before = Utc::now();
         let not_after = not_before + Duration::hours(1);
 
@@ -873,6 +873,14 @@ impl X509CertificateBuilder {
             not_after,
             csr_attributes: Attributes::default(),
         }
+    }
+}
+
+impl X509CertificateBuilder {
+    /// Deprecated. Use [Self::default()] instead.
+    #[deprecated]
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Obtain a mutable reference to the subject [Name].
@@ -1074,7 +1082,7 @@ mod test {
 
     #[test]
     fn builder_ed25519_default() {
-        let builder = X509CertificateBuilder::new();
+        let builder = X509CertificateBuilder::default();
         builder
             .create_with_random_keypair(KeyAlgorithm::Ed25519)
             .unwrap();
@@ -1085,14 +1093,14 @@ mod test {
         for curve in EcdsaCurve::all() {
             let key_algorithm = KeyAlgorithm::Ecdsa(*curve);
 
-            let builder = X509CertificateBuilder::new();
+            let builder = X509CertificateBuilder::default();
             builder.create_with_random_keypair(key_algorithm).unwrap();
         }
     }
 
     #[test]
     fn build_subject_populate() {
-        let mut builder = X509CertificateBuilder::new();
+        let mut builder = X509CertificateBuilder::default();
         builder
             .subject()
             .append_common_name_utf8_string("My Name")
@@ -1114,7 +1122,7 @@ mod test {
 
             let key = InMemorySigningKeyPair::generate_random(key_algorithm)?;
 
-            let builder = X509CertificateBuilder::new();
+            let builder = X509CertificateBuilder::default();
 
             let csr = builder.create_certificate_signing_request(&key)?;
 
