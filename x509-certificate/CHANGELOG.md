@@ -17,6 +17,9 @@ Released on ReleaseDate.
 * `X509CertificateBuilder::create_with_random_keypair()` no longer returns
   a `ring::pkcs8::Document`. (The PKCS#8 representation can now be obtained
   from the returned `InMemorySigningKeyPair`.)
+* `InMemorySigningKeyPair::generate_random()` no longer returns a
+  `ring::pkcs8::Document`. (The PKCS#8 representation can now be obtained
+  from the returned `InMemorySigningKeyPair`.)
 
 ## 0.22.1
 

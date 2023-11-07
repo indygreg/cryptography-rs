@@ -953,7 +953,7 @@ impl X509CertificateBuilder {
     pub fn create_with_random_keypair(
         &self,
     ) -> Result<(CapturedX509Certificate, InMemorySigningKeyPair), Error> {
-        let key_pair = InMemorySigningKeyPair::generate_random(self.key_algorithm)?.0;
+        let key_pair = InMemorySigningKeyPair::generate_random(self.key_algorithm)?;
 
         let key_pair_signature_algorithm = key_pair.signature_algorithm();
 
@@ -1102,7 +1102,7 @@ mod test {
         for curve in EcdsaCurve::all() {
             let key_algorithm = KeyAlgorithm::Ecdsa(*curve);
 
-            let key = InMemorySigningKeyPair::generate_random(key_algorithm)?.0;
+            let key = InMemorySigningKeyPair::generate_random(key_algorithm)?;
 
             let builder = X509CertificateBuilder::new(key_algorithm);
 

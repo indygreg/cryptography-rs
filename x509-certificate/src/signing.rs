@@ -301,9 +301,7 @@ impl InMemorySigningKeyPair {
     /// The raw PKCS#8 document is returned to facilitate access to the private key.
     ///
     /// Not attempt is made to protect the private key in memory.
-    pub fn generate_random(
-        key_algorithm: KeyAlgorithm,
-    ) -> Result<(Self, ring::pkcs8::Document), Error> {
+    pub fn generate_random(key_algorithm: KeyAlgorithm) -> Result<Self, Error> {
         let rng = SystemRandom::new();
 
         let document = match key_algorithm {
@@ -314,9 +312,7 @@ impl InMemorySigningKeyPair {
             KeyAlgorithm::Rsa => Err(Error::RsaKeyGenerationNotSupported),
         }?;
 
-        let key_pair = Self::from_pkcs8_der(document.as_ref())?;
-
-        Ok((key_pair, document))
+        Self::from_pkcs8_der(document.as_ref())
     }
 
     /// Attempt to resolve a verification algorithm for this key pair.
