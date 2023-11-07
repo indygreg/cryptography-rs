@@ -127,13 +127,13 @@ pub struct RsaKeyPair {
 #[derive(Debug)]
 pub enum InMemorySigningKeyPair {
     /// ECDSA key pair.
-    Ecdsa(EcdsaKeyPair),
+    Ecdsa(Box<EcdsaKeyPair>),
 
     /// ED25519 key pair.
-    Ed25519(Ed25519KeyPair),
+    Ed25519(Box<Ed25519KeyPair>),
 
     /// RSA key pair.
-    Rsa(RsaKeyPair),
+    Rsa(Box<RsaKeyPair>),
 }
 
 impl Signer<Signature> for InMemorySigningKeyPair {
@@ -259,11 +259,11 @@ impl InMemorySigningKeyPair {
             KeyAlgorithm::Rsa => {
                 let pair = ringsig::RsaKeyPair::from_pkcs8(data.as_ref())?;
 
-                Ok(Self::Rsa(RsaKeyPair {
+                Ok(Self::Rsa(Box::new(RsaKeyPair {
                     pkcs8_der,
                     ring_pair: pair,
                     private_key: Zeroizing::new(key.private_key.into_bytes().to_vec()),
-                }))
+                })))
             }
             KeyAlgorithm::Ecdsa(curve) => {
                 let pair = ringsig::EcdsaKeyPair::from_pkcs8(
@@ -272,17 +272,17 @@ impl InMemorySigningKeyPair {
                     &SystemRandom::new(),
                 )?;
 
-                Ok(Self::Ecdsa(EcdsaKeyPair {
+                Ok(Self::Ecdsa(Box::new(EcdsaKeyPair {
                     pkcs8_der,
                     ring_pair: pair,
                     curve,
                     private_key: Zeroizing::new(data.as_ref().to_vec()),
-                }))
+                })))
             }
-            KeyAlgorithm::Ed25519 => Ok(Self::Ed25519(Ed25519KeyPair {
+            KeyAlgorithm::Ed25519 => Ok(Self::Ed25519(Box::new(Ed25519KeyPair {
                 pkcs8_der,
                 ring_pair: ringsig::Ed25519KeyPair::from_pkcs8(data.as_ref())?,
-            })),
+            }))),
         }
     }
 
