@@ -18,7 +18,7 @@ use {
         ConstOid, Mode, Oid,
     },
     bytes::Bytes,
-    chrono::{Duration, Utc},
+    chrono::{DateTime, Duration, Utc},
     der::{Decode, Document},
     ring::signature as ringsig,
     signature::Signer,
@@ -340,6 +340,21 @@ impl X509Certificate {
     /// Obtain the SHA-256 fingerprint of this certificate.
     pub fn sha256_fingerprint(&self) -> Result<ring::digest::Digest, std::io::Error> {
         self.fingerprint(DigestAlgorithm::Sha256)
+    }
+
+    /// Obtain the raw [rfc5280::TbsCertificate] for this certificate.
+    pub fn tbs_certificate(&self) -> &rfc5280::TbsCertificate {
+        &self.0.tbs_certificate
+    }
+
+    /// Obtain the certificate validity "not before" time.
+    pub fn validity_not_before(&self) -> DateTime<Utc> {
+        self.0.tbs_certificate.validity.not_before.clone().into()
+    }
+
+    /// Obtain the certificate validity "not after" time.
+    pub fn validity_not_after(&self) -> DateTime<Utc> {
+        self.0.tbs_certificate.validity.not_after.clone().into()
     }
 }
 

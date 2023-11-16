@@ -76,6 +76,15 @@ impl From<chrono::DateTime<chrono::Utc>> for Time {
     }
 }
 
+impl From<Time> for chrono::DateTime<chrono::Utc> {
+    fn from(value: Time) -> Self {
+        match value {
+            Time::UtcTime(v) => v.into(),
+            Time::GeneralTime(v) => v.into(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Zone {
     Utc,
@@ -354,6 +363,12 @@ pub struct UtcTime(chrono::DateTime<chrono::Utc>);
 impl From<chrono::DateTime<chrono::Utc>> for UtcTime {
     fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
         Self(value)
+    }
+}
+
+impl From<UtcTime> for chrono::DateTime<chrono::Utc> {
+    fn from(value: UtcTime) -> Self {
+        *value.deref()
     }
 }
 

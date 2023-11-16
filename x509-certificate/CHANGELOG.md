@@ -6,6 +6,15 @@
 
 Released on ReleaseDate.
 
+* `X509Certificate` now has a `tbs_certificate()` to retrieve a reference to
+  the raw, main certificate data structure.
+* There are now `From<T>` implementations for `asn1time::Time`,
+  `asn1time::GeneralizedTime`, and `asn1time::UtcTime` that allow
+  conversion to `chrono::DateTime<chrono::Utc>`.
+* `X509Certificate` now has `validity_not_before()` and `validity_not_after()`
+  methods to obtain a `chrono::DateTime<chrono::Utc>` corresponding to the
+  certificate's validity start and end times.
+
 ## 0.23.0
 
 Released on 2023-11-07.
