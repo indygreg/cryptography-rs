@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.23.1
+
+Released on 2023-11-16.
+
 * `X509Certificate` now has a `tbs_certificate()` to retrieve a reference to
   the raw, main certificate data structure.
 * There are now `From<T>` implementations for `asn1time::Time`,

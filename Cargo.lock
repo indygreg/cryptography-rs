@@ -2021,7 +2021,7 @@ dependencies = [
 
 [[package]]
 name = "x509-certificate"
-version = "0.23.0"
+version = "0.23.1"
 dependencies = [
  "bcder",
  "bytes",
