@@ -14,6 +14,8 @@ Released on ReleaseDate.
 * `X509Certificate` now has `validity_not_before()` and `validity_not_after()`
   methods to obtain a `chrono::DateTime<chrono::Utc>` corresponding to the
   certificate's validity start and end times.
+* `X509Certificate` now has a `time_constraints_valid()` to check whether the
+  time is between the validity constraints expressed in the certificate.
 
 ## 0.23.0
 

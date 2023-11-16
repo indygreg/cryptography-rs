@@ -356,6 +356,20 @@ impl X509Certificate {
     pub fn validity_not_after(&self) -> DateTime<Utc> {
         self.0.tbs_certificate.validity.not_after.clone().into()
     }
+
+    /// Determine whether a time is between the validity constraints in the certificate.
+    ///
+    /// i.e. check whether a certificate is "expired."
+    ///
+    /// Receives a date time to check against.
+    ///
+    /// If `None`, the current time is used. This relies on the machine's
+    /// wall clock to be accurate, of course.
+    pub fn time_constraints_valid(&self, compare_time: Option<DateTime<Utc>>) -> bool {
+        let compare_time = compare_time.unwrap_or(Utc::now());
+
+        compare_time >= self.validity_not_before() && compare_time <= self.validity_not_after()
+    }
 }
 
 impl From<rfc5280::Certificate> for X509Certificate {
