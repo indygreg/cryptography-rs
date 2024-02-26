@@ -72,17 +72,21 @@ structures referenced by RFC5652 and taught them to serialize using `bcder`.
 */
 
 pub mod asn1;
+
+#[cfg(feature = "http")]
 mod signing;
+#[cfg(feature = "http")]
 mod time_stamp_protocol;
 
+#[cfg(feature = "http")]
 pub use {
-    bcder::Oid,
-    bytes::Bytes,
     signing::{SignedDataBuilder, SignerBuilder},
     time_stamp_protocol::{
         time_stamp_message_http, time_stamp_request_http, TimeStampError, TimeStampResponse,
     },
 };
+
+pub use {bcder::Oid, bytes::Bytes};
 
 use {
     crate::asn1::{
@@ -171,6 +175,7 @@ pub enum CmsError {
     /// Error occurred parsing a distinguished name field in a certificate.
     DistinguishedNameParseError,
 
+    #[cfg(feature = "http")]
     /// Error occurred in Time-Stamp Protocol.
     TimeStampProtocol(TimeStampError),
 
@@ -228,6 +233,7 @@ impl Display for CmsError {
             Self::DistinguishedNameParseError => {
                 f.write_str("could not parse distinguished name data")
             }
+            #[cfg(feature = "http")]
             Self::TimeStampProtocol(e) => {
                 f.write_fmt(format_args!("Time-Stamp Protocol error: {}", e))
             }
@@ -256,6 +262,7 @@ impl From<PemError> for CmsError {
     }
 }
 
+#[cfg(feature = "http")]
 impl From<TimeStampError> for CmsError {
     fn from(e: TimeStampError) -> Self {
         Self::TimeStampProtocol(e)
