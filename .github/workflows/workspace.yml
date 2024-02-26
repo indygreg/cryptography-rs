@@ -39,6 +39,7 @@ jobs:
       - name: Build Workspace
         run: |
           rustc --version
+          cargo build --workspace --no-default-features
           cargo build --workspace
           cargo test --workspace --no-run
 
