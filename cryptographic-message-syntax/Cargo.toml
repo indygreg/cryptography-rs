@@ -1,6 +1,6 @@
 [package]
 name = "cryptographic-message-syntax"
-version = "0.26.0"
+version = "0.27.0"
 authors = ["Gregory Szorc <gregory.szorc@gmail.com>"]
 edition = "2021"
 rust-version = "1.65"
@@ -17,7 +17,7 @@ bytes = "1.5.0"
 chrono = { version = "0.4.31", default-features = false }
 hex = "0.4.3"
 pem = "3.0.2"
-reqwest = { version = "0.11.22", default-features = false, features = ["blocking", "rustls-tls"] }
+reqwest = { version = "0.11.22", default-features = false, features = ["blocking", "rustls-tls"], optional = true }
 ring = "0.17.5"
 signature = { version = "2.1.0", features = ["std"] }
 
@@ -25,3 +25,7 @@ signature = { version = "2.1.0", features = ["std"] }
 path = "../x509-certificate"
 version = "0.23.0"
 features = ["test"]
+
+[features]
+default = ["http"]
+http = ["dep:reqwest"]
