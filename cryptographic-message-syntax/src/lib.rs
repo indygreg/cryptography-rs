@@ -960,7 +960,7 @@ impl TryFrom<&crate::asn1::rfc5652::SignerInfo> for SignerInfo {
                             .unwrap()
                             .deref()
                             .clone()
-                            .decode(|cons| crate::asn1::rfc5652::SignedData::decode(cons))?)
+                            .decode(crate::asn1::rfc5652::SignedData::decode)?)
                     }
                 })
                 .transpose()?;
