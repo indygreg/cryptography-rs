@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.27.0
+
+Released on 2024-11-02.
+
 * MSRV 1.65 -> 1.75.
 * The crate now has an `http` feature to control availability of features making
   HTTP requests (notably time-stamp protocol support). Disabling the feature

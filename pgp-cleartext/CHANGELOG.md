@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.11.0
+
+Released on 2024-11-02.
+
 * Updated README to recommend using the `pgp` crate now that it has native
   PGP cleartext framework support (#22).
 * MSRV 1.65 -> 1.75.
