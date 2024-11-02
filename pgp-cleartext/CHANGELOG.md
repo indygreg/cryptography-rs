@@ -8,8 +8,7 @@ Released on ReleaseDate.
 
 * Updated README to recommend using the `pgp` crate now that it has native
   PGP cleartext framework support (#22).
-* `smallvec` 1.11 -> 1.13.
-* `pgp` 0.10 -> 0.13.
+* `pgp` 0.10 -> 0.14.
 
 ## 0.10.0
 

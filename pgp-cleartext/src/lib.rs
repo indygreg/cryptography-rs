@@ -33,10 +33,9 @@ use {
     pgp::{
         crypto::hash::{HashAlgorithm, Hasher},
         packet::{Packet, SignatureConfig, SignatureType, Subpacket, SubpacketData},
-        types::{KeyVersion, PublicKeyTrait, SecretKeyTrait},
+        types::{PublicKeyTrait, SecretKeyTrait},
         Signature,
     },
-    smallvec::SmallVec,
     std::{
         cmp::Ordering,
         collections::HashMap,
@@ -606,24 +605,16 @@ where
     // TODO these sets should be audited by someone who knows PGP.
 
     let hashed_subpackets = vec![
-        Subpacket::regular(SubpacketData::IssuerFingerprint(
-            KeyVersion::V4,
-            SmallVec::from_slice(&key.fingerprint()),
-        )),
+        Subpacket::regular(SubpacketData::IssuerFingerprint(key.fingerprint())),
         Subpacket::regular(SubpacketData::SignatureCreationTime(
             chrono::Utc::now().trunc_subsecs(0),
         )),
     ];
     let unhashed_subpackets = vec![Subpacket::regular(SubpacketData::Issuer(key.key_id()))];
 
-    let config = SignatureConfig::new_v4(
-        Default::default(),
-        SignatureType::Text,
-        key.algorithm(),
-        hash_algorithm,
-        hashed_subpackets,
-        unhashed_subpackets,
-    );
+    let mut config = SignatureConfig::v4(SignatureType::Text, key.algorithm(), hash_algorithm);
+    config.hashed_subpackets = hashed_subpackets;
+    config.unhashed_subpackets = unhashed_subpackets;
 
     let signature = config.sign(key, key_pw, Cursor::new(cleartext))?;
 

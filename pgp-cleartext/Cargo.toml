@@ -15,7 +15,6 @@ readme = "README.md"
 chrono = { version = "0.4.38", default-features = false }
 digest = "0.10.7"
 md-5 = "0.10.6"
-pgp = "0.13.2"
+pgp = "0.14.0"
 sha-1 = "0.10.1"
 sha2 = "0.10.8"
-smallvec = "1.13.2"
