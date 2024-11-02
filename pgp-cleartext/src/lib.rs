@@ -124,6 +124,17 @@ impl Hasher for CleartextHasher {
             CleartextHasher::Sha512(digest) => digest.finalize().to_vec(),
         }
     }
+
+    fn finish_reset_into(&mut self, out: &mut [u8]) {
+        let res = match self {
+            Self::Md5(ref mut digest) => digest.finalize_reset().to_vec(),
+            CleartextHasher::Sha1(ref mut digest) => digest.finalize_reset().to_vec(),
+            CleartextHasher::Sha256(ref mut digest) => digest.finalize_reset().to_vec(),
+            CleartextHasher::Sha384(ref mut digest) => digest.finalize_reset().to_vec(),
+            CleartextHasher::Sha512(ref mut digest) => digest.finalize_reset().to_vec(),
+        };
+        out.copy_from_slice(&res.as_slice()[..out.len()]);
+    }
 }
 
 enum ReaderState {
@@ -390,7 +401,9 @@ impl<R: BufRead> Read for CleartextSignatureReader<R> {
                     self.reader.read_to_end(&mut buffer)?;
 
                     let mut dearmor = pgp::armor::Dearmor::new(io::Cursor::new(buffer));
-                    dearmor.read_header()?;
+                    dearmor
+                        .read_header()
+                        .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
 
                     if !matches!(dearmor.typ, Some(pgp::armor::BlockType::Signature)) {
                         return Err(io::Error::new(
@@ -617,7 +630,13 @@ where
     // The armoring consists of a signature packet.
     let packet = Packet::Signature(signature);
     let mut writer = Cursor::new(Vec::<u8>::new());
-    pgp::armor::write(&packet, pgp::armor::BlockType::Signature, &mut writer, None)?;
+    pgp::armor::write(
+        &packet,
+        pgp::armor::BlockType::Signature,
+        &mut writer,
+        None,
+        true,
+    )?;
 
     // The armoring should always produce valid UTF-8. But we are careful.
     let signature_string = String::from_utf8(writer.into_inner())
