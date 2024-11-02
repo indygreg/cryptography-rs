@@ -474,21 +474,27 @@ mod test {
     #[test]
     fn generalized_time() -> Result<(), ContentError> {
         let gt = GeneralizedTime {
-            time: chrono::NaiveDateTime::from_timestamp_opt(1643510772, 0).unwrap(),
+            time: chrono::DateTime::from_timestamp(1643510772, 0)
+                .unwrap()
+                .naive_utc(),
             fractional_seconds: false,
             timezone: Zone::Utc,
         };
         assert_eq!(gt.to_string(), "20220130024612Z");
 
         let gt = GeneralizedTime {
-            time: chrono::NaiveDateTime::from_timestamp_opt(1643510772, 0).unwrap(),
+            time: chrono::DateTime::from_timestamp(1643510772, 0)
+                .unwrap()
+                .naive_utc(),
             fractional_seconds: false,
             timezone: Zone::Offset(chrono::FixedOffset::east_opt(3600).unwrap()),
         };
         assert_eq!(gt.to_string(), "20220130024612+0100");
 
         let gt = GeneralizedTime {
-            time: chrono::NaiveDateTime::from_timestamp_opt(1643510772, 0).unwrap(),
+            time: chrono::DateTime::from_timestamp(1643510772, 0)
+                .unwrap()
+                .naive_utc(),
             fractional_seconds: false,
             timezone: Zone::Offset(chrono::FixedOffset::west_opt(7200).unwrap()),
         };
