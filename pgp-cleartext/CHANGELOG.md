@@ -7,6 +7,7 @@
 Released on ReleaseDate.
 
 * `smallvec` 1.11 -> 1.13.
+* `pgp` 0.10 -> 0.11.
 
 ## 0.10.0
 

@@ -249,7 +249,7 @@ impl<R: BufRead> Read for CleartextSignatureReader<R> {
                                 };
 
                                 self.hashers
-                                    .entry(hasher.algorithm() as u8)
+                                    .entry(u8::from(hasher.algorithm()))
                                     .or_insert(hasher);
                             }
                         }
@@ -462,13 +462,9 @@ impl CleartextSignatures {
         &'slf self,
         key: &'key impl PublicKeyTrait,
     ) -> impl Iterator<Item = &'slf Signature> {
-        self.signatures.iter().filter(|sig| {
-            if let Some(issuer) = sig.issuer() {
-                &key.key_id() == issuer
-            } else {
-                false
-            }
-        })
+        self.signatures
+            .iter()
+            .filter(|sig| sig.issuer().iter().any(|issuer| &key.key_id() == *issuer))
     }
 
     /// Verify a signature made from a known key.
@@ -494,7 +490,7 @@ impl CleartextSignatures {
             // fed the cleartext) to verify the signature. Fortunately we can clone hashers.
             let mut hasher = Box::new(
                 self.hashers
-                    .get(&(sig.config.hash_alg as u8))
+                    .get(&(u8::from(sig.config.hash_alg)))
                     .ok_or_else(|| {
                         pgp::errors::Error::Message(format!(
                             "could not find hasher matching signature hash algorithm ({:?})",
@@ -505,7 +501,7 @@ impl CleartextSignatures {
             );
 
             let len = sig.config.hash_signature_data(&mut *hasher)?;
-            hasher.update(&sig.config.trailer(len));
+            hasher.update(&sig.config.trailer(len)?);
 
             let digest = hasher.finish();
 
