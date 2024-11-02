@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+* `bytes` 1.5 -> 1.8.
+* `signature` 2.1 -> 2.2.
+* `zeroize` 1.6 -> 1.8.
+
 ## 0.23.1
 
 Released on 2023-11-16.

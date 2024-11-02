@@ -6,6 +6,8 @@
 
 Released on ReleaseDate.
 
+* `smallvec` 1.11 -> 1.13.
+
 ## 0.10.0
 
 Released on 2023-11-03.

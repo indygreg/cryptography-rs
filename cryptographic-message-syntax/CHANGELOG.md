@@ -6,6 +6,9 @@
 
 Released on ReleaseDate.
 
+* `bytes` 1.5 -> 1.8.
+* `signature` 2.1 -> 2.2.
+
 ## 0.26.0
 
 Released on 2023-11-07.
