@@ -7,6 +7,7 @@
 Released on ReleaseDate.
 
 * `bytes` 1.5 -> 1.8.
+* `reqwest` 0.11 -> 0.12.
 * `signature` 2.1 -> 2.2.
 
 ## 0.26.0
