@@ -307,9 +307,9 @@ impl GeneralizedTime {
     }
 }
 
-impl ToString for GeneralizedTime {
-    fn to_string(&self) -> String {
-        format!(
+impl Display for GeneralizedTime {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let str = format!(
             "{}{}",
             self.time.format(if self.fractional_seconds {
                 "%Y%m%d%H%M%S%.f"
@@ -317,7 +317,8 @@ impl ToString for GeneralizedTime {
                 "%Y%m%d%H%M%S"
             }),
             self.timezone
-        )
+        );
+        write!(f, "{}", str)
     }
 }
 
@@ -433,9 +434,9 @@ impl UtcTime {
     }
 }
 
-impl ToString for UtcTime {
-    fn to_string(&self) -> String {
-        format!(
+impl Display for UtcTime {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let str = format!(
             "{:02}{:02}{:02}{:02}{:02}{:02}Z",
             self.0.year() % 100,
             self.0.month(),
@@ -443,7 +444,8 @@ impl ToString for UtcTime {
             self.0.hour(),
             self.0.minute(),
             self.0.second()
-        )
+        );
+        write!(f, "{}", str)
     }
 }
 

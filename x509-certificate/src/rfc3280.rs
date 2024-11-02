@@ -17,7 +17,7 @@ use {
         Captured, Mode, OctetString, Oid, Tag,
     },
     std::{
-        fmt::{Debug, Formatter},
+        fmt::{Debug, Display, Formatter},
         io::Write,
         ops::{Deref, DerefMut},
         str::FromStr,
@@ -324,13 +324,14 @@ impl DirectoryString {
     }
 }
 
-impl ToString for DirectoryString {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for DirectoryString {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             Self::PrintableString(s) => s.to_string(),
             Self::Utf8String(s) => s.to_string(),
             _ => unimplemented!(),
-        }
+        };
+        write!(f, "{}", str)
     }
 }
 
