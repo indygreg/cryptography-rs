@@ -7,6 +7,7 @@
 Released on ReleaseDate.
 
 * MSRV 1.75 -> 1.85.
+* `pgp` 0.14 -> 0.15.
 
 ## 0.11.0
 
