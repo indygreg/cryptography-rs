@@ -1,7 +1,6 @@
 [workspace]
 members = [
     'cryptographic-message-syntax',
-    'pgp-cleartext',
     'x509-certificate',
 ]
 resolver = "2"
