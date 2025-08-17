@@ -213,7 +213,7 @@ pub struct SignedDataBuilder<'a> {
     signing_time: UtcTime,
 }
 
-impl<'a> Default for SignedDataBuilder<'a> {
+impl Default for SignedDataBuilder<'_> {
     fn default() -> Self {
         Self {
             signed_content: SignedContent::None,

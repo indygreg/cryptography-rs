@@ -324,7 +324,7 @@ impl<R: BufRead> Read for CleartextSignatureReader<R> {
                         line.as_str()
                     };
 
-                    let no_eol = emit.trim_end_matches(|c| c == '\r' || c == '\n');
+                    let no_eol = emit.trim_end_matches(['\r', '\n']);
 
                     for hasher in self.hashers.values_mut() {
                         // On non-initial reads, feed in CRLF from last line, since we know this
@@ -338,11 +338,11 @@ impl<R: BufRead> Read for CleartextSignatureReader<R> {
 
                     // We could continue reading to fill the destination buffer. But that is
                     // more complex.
-                    return match dest.len().cmp(&emit.as_bytes().len()) {
+                    return match dest.len().cmp(&emit.len()) {
                         Ordering::Equal | Ordering::Greater => {
                             // Destination buffer is large enough to hold the line/content we just
                             // read. Just copy it over and return how many bytes we copied.
-                            let count = emit.as_bytes().len();
+                            let count = emit.len();
                             let dest = &mut dest[0..count];
                             dest.copy_from_slice(emit.as_bytes());
                             self.state = ReaderState::CleartextEmpty(true);
@@ -356,17 +356,17 @@ impl<R: BufRead> Read for CleartextSignatureReader<R> {
                             dest.copy_from_slice(to_copy.as_bytes());
                             self.state = ReaderState::CleartextBuffered(remaining.to_string());
 
-                            Ok(to_copy.as_bytes().len())
+                            Ok(to_copy.len())
                         }
                     };
                 }
 
                 ReaderState::CleartextBuffered(ref mut remaining) => {
-                    return match dest.len().cmp(&remaining.as_bytes().len()) {
+                    return match dest.len().cmp(&remaining.len()) {
                         Ordering::Equal | Ordering::Greater => {
                             // The destination buffer has enough capacity to hold what we have.
                             // Write it out and revert to clean read mode.
-                            let count = remaining.as_bytes().len();
+                            let count = remaining.len();
                             let dest = &mut dest[0..count];
 
                             dest.copy_from_slice(remaining.as_bytes());
