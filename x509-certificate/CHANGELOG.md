@@ -7,6 +7,7 @@
 Released on ReleaseDate.
 
 * MSRV 1.75 -> 1.85.
+* `thiserror` 1.0 -> 2.0.
 
 ## 0.24.0
 
