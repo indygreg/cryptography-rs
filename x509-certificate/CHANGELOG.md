@@ -6,6 +6,10 @@
 
 Released on ReleaseDate.
 
+## 0.25.0
+
+Released on 2025-08-17.
+
 * MSRV 1.75 -> 1.85.
 * Rust edition 2021 -> 2024.
 * `thiserror` 1.0 -> 2.0.
