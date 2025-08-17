@@ -12,7 +12,7 @@ repository = "https://github.com/indygreg/cryptography-rs.git"
 readme = "README.md"
 
 [dependencies]
-bcder = "0.7.4"
+bcder = "0.7.5"
 bytes = "1.8.0"
 chrono = { version = "0.4.38", default-features = false }
 hex = "0.4.3"
