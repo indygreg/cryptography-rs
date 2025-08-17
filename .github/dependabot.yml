@@ -3,9 +3,6 @@ updates:
   - package-ecosystem: "cargo"
     directories:
       - "/"
-      - "/cryptographic-message-syntax"
-      - "/pgp-cleartext"
-      - "/x509-certificate"
     schedule:
       interval: "weekly"
     commit-message:
