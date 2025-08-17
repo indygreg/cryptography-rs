@@ -13,7 +13,7 @@ readme = "README.md"
 
 [dependencies]
 bcder = "0.7.4"
-bytes = "1.8.0"
+bytes = "1.10.1"
 chrono = { version = "0.4.38", default-features = false }
 hex = "0.4.3"
 pem = "3.0.4"
