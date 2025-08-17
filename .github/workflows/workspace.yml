@@ -22,8 +22,10 @@ jobs:
         target:
           - os: 'ubuntu-22.04'
             triple: 'x86_64-unknown-linux-gnu'
-          - os: 'macos-12'
+          - os: 'macos-13'
             triple: 'x86_64-apple-darwin'
+          - os: 'macos-15'
+            triple: 'aarch64-apple-darwin'
           - os: 'windows-2022'
             triple: 'x86_64-pc-windows-msvc'
     continue-on-error: ${{ matrix.rust_toolchain == 'nightly' }}
