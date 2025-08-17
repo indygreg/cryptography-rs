@@ -31,9 +31,9 @@ jobs:
     continue-on-error: ${{ matrix.rust_toolchain == 'nightly' }}
     runs-on: ${{ matrix.target.os }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - uses: dtolnay/rust-toolchain@v1
+      - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # v1
         with:
           toolchain: ${{ matrix.rust_toolchain }}
           target: ${{ matrix.target.triple }}
