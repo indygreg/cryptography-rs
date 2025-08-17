@@ -2,6 +2,7 @@ on:
   push:
     branches-ignore:
       - 'ci-test'
+      - 'dependabot/**'
     tags-ignore:
       - '**'
   pull_request:
