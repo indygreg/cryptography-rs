@@ -21,7 +21,7 @@ chrono = { version = "0.4.38", default-features = false, features = ["clock"] }
 der = { version = "0.7.9", features = ["alloc", "zeroize"] }
 hex = "0.4.3"
 pem = "3.0.4"
-ring = "0.17.8"
+ring = "0.17.14"
 signature = { version = "2.2.0", features = ["std"] }
 spki = { version = "0.7.3", features = ["alloc"] }
 thiserror = "1.0.66"
