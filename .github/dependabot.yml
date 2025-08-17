@@ -9,7 +9,7 @@ updates:
     schedule:
       interval: "weekly"
     commit-message:
-      commit-message: "workspace: "
+      prefix: "workspace: "
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
