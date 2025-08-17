@@ -8,7 +8,11 @@ updates:
       - "/x509-certificate"
     schedule:
       interval: "weekly"
+    commit-message:
+      commit-message: "workspace: "
   - package-ecosystem: "github-actions"
-    directory: ".github/workflows"
+    directory: "/"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "ci: "
