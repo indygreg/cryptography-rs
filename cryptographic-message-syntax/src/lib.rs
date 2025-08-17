@@ -736,11 +736,11 @@ impl SignerInfo {
     /// there is and the token validates. `Err` occurs on any parse or verification
     /// error.
     pub fn verify_time_stamp_token(&self) -> Result<Option<()>, CmsError> {
-        let signed_data = if let Some(v) = self.time_stamp_token_signed_data()? {
+        let signed_data = match self.time_stamp_token_signed_data()? { Some(v) => {
             v
-        } else {
+        } _ => {
             return Ok(None);
-        };
+        }};
 
         if signed_data.signers.is_empty() {
             return Ok(None);

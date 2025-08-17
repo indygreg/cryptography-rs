@@ -55,45 +55,37 @@ pub enum GeneralName {
 
 impl GeneralName {
     pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
-        if let Some(name) =
-            cons.take_opt_constructed_if(Tag::CTX_0, |cons| AnotherName::take_from(cons))?
-        {
+        match cons.take_opt_constructed_if(Tag::CTX_0, |cons| AnotherName::take_from(cons))?
+        { Some(name) => {
             Ok(Self::OtherName(name))
-        } else if let Some(name) =
-            cons.take_opt_constructed_if(Tag::CTX_1, |cons| Ia5String::take_from(cons))?
-        {
+        } _ => { match cons.take_opt_constructed_if(Tag::CTX_1, |cons| Ia5String::take_from(cons))?
+        { Some(name) => {
             Ok(Self::Rfc822Name(name))
-        } else if let Some(name) =
-            cons.take_opt_constructed_if(Tag::CTX_2, |cons| Ia5String::take_from(cons))?
-        {
+        } _ => { match cons.take_opt_constructed_if(Tag::CTX_2, |cons| Ia5String::take_from(cons))?
+        { Some(name) => {
             Ok(Self::DnsName(name))
-        } else if let Some(name) =
+        } _ => if let Some(name) =
             cons.take_opt_constructed_if(Tag::CTX_3, |cons| OrAddress::take_from(cons))?
         {
             Ok(Self::X400Address(name))
-        } else if let Some(name) =
-            cons.take_opt_constructed_if(Tag::CTX_4, |cons| Name::take_from(cons))?
-        {
+        } else { match cons.take_opt_constructed_if(Tag::CTX_4, |cons| Name::take_from(cons))?
+        { Some(name) => {
             Ok(Self::DirectoryName(name))
-        } else if let Some(name) =
-            cons.take_opt_constructed_if(Tag::CTX_5, |cons| EdiPartyName::take_from(cons))?
-        {
+        } _ => { match cons.take_opt_constructed_if(Tag::CTX_5, |cons| EdiPartyName::take_from(cons))?
+        { Some(name) => {
             Ok(Self::EdiPartyName(name))
-        } else if let Some(name) =
-            cons.take_opt_constructed_if(Tag::CTX_6, |cons| Ia5String::take_from(cons))?
-        {
+        } _ => { match cons.take_opt_constructed_if(Tag::CTX_6, |cons| Ia5String::take_from(cons))?
+        { Some(name) => {
             Ok(Self::UniformResourceIdentifier(name))
-        } else if let Some(name) =
-            cons.take_opt_constructed_if(Tag::ctx(7), |cons| OctetString::take_from(cons))?
-        {
+        } _ => { match cons.take_opt_constructed_if(Tag::ctx(7), |cons| OctetString::take_from(cons))?
+        { Some(name) => {
             Ok(Self::IpAddress(name))
-        } else if let Some(name) =
-            cons.take_opt_constructed_if(Tag::ctx(8), |cons| Oid::take_from(cons))?
-        {
+        } _ => { match cons.take_opt_constructed_if(Tag::ctx(8), |cons| Oid::take_from(cons))?
+        { Some(name) => {
             Ok(Self::RegisteredId(name))
-        } else {
+        } _ => {
             Err(cons.content_err("unexpected GeneralName variant"))
-        }
+        }}}}}}}}}}}}}}}}
     }
 
     pub fn encode_ref(&self) -> impl Values + '_ {
@@ -788,25 +780,25 @@ impl AttributeValue {
     /// If the inner type isn't a known string, a decoding error occurs.
     pub fn to_string(&self) -> Result<String, DecodeError<<BytesSource as Source>::Error>> {
         self.0.clone().decode(|cons| {
-            if let Some(s) = cons.take_opt_value_if(Tag::NUMERIC_STRING, |content| {
+            match cons.take_opt_value_if(Tag::NUMERIC_STRING, |content| {
                 bcder::NumericString::from_content(content)
-            })? {
+            })? { Some(s) => {
                 Ok(s.to_string())
-            } else if let Some(s) = cons.take_opt_value_if(Tag::PRINTABLE_STRING, |content| {
+            } _ => { match cons.take_opt_value_if(Tag::PRINTABLE_STRING, |content| {
                 bcder::PrintableString::from_content(content)
-            })? {
+            })? { Some(s) => {
                 Ok(s.to_string())
-            } else if let Some(s) = cons.take_opt_value_if(Tag::UTF8_STRING, |content| {
+            } _ => { match cons.take_opt_value_if(Tag::UTF8_STRING, |content| {
                 bcder::Utf8String::from_content(content)
-            })? {
+            })? { Some(s) => {
                 Ok(s.to_string())
-            } else if let Some(s) = cons.take_opt_value_if(Tag::IA5_STRING, |content| {
+            } _ => { match cons.take_opt_value_if(Tag::IA5_STRING, |content| {
                 bcder::Ia5String::from_content(content)
-            })? {
+            })? { Some(s) => {
                 Ok(s.to_string())
-            } else {
+            } _ => {
                 Ok(DirectoryString::take_from(cons)?.to_string())
-            }
+            }}}}}}}}
         })
     }
 

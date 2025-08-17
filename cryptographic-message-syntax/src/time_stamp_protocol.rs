@@ -126,7 +126,7 @@ impl TimeStampResponse {
     }
 
     pub fn tst_info(&self) -> Result<Option<TstInfo>, DecodeError<Infallible>> {
-        if let Some(signed_data) = self.signed_data()? {
+        match self.signed_data()? { Some(signed_data) => {
             if signed_data.content_info.content_type == OID_CONTENT_TYPE_TST_INFO {
                 if let Some(content) = signed_data.content_info.content {
                     Ok(Some(Constructed::decode(
@@ -140,9 +140,9 @@ impl TimeStampResponse {
             } else {
                 Ok(None)
             }
-        } else {
+        } _ => {
             Ok(None)
-        }
+        }}
     }
 }
 

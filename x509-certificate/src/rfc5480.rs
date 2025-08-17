@@ -29,9 +29,9 @@ pub enum EcParameters {
 
 impl EcParameters {
     pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
-        if let Some(oid) = Oid::take_opt_from(cons)? {
+        match Oid::take_opt_from(cons)? { Some(oid) => {
             Ok(Self::NamedCurve(oid))
-        } else {
+        } _ => {
             let null_value = cons.take_opt_primitive_if(Tag::NULL, |cons| {
                 cons.take_all()?;
                 Ok(())
@@ -42,7 +42,7 @@ impl EcParameters {
             } else {
                 Err(cons.content_err("parsing of SpecifiecECDomain not implemented"))
             }
-        }
+        }}
     }
 
     pub fn encode_ref_as(&self, tag: Tag) -> impl Values + '_ {

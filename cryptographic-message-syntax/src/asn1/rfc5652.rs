@@ -591,15 +591,14 @@ pub enum SignerIdentifier {
 
 impl SignerIdentifier {
     pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
-        if let Some(identifier) =
-            cons.take_opt_constructed_if(Tag::CTX_0, |cons| SubjectKeyIdentifier::take_from(cons))?
-        {
+        match cons.take_opt_constructed_if(Tag::CTX_0, |cons| SubjectKeyIdentifier::take_from(cons))?
+        { Some(identifier) => {
             Ok(Self::SubjectKeyIdentifier(identifier))
-        } else {
+        } _ => {
             Ok(Self::IssuerAndSerialNumber(
                 IssuerAndSerialNumber::take_from(cons)?,
             ))
-        }
+        }}
     }
 }
 
@@ -1184,21 +1183,20 @@ impl CertificateChoices {
         })?;
 
         // TODO these first 2 need methods that parse an already entered SEQUENCE.
-        if let Some(certificate) = cons
+        match cons
             .take_opt_constructed_if(Tag::CTX_2, |cons| AttributeCertificateV2::take_from(cons))?
-        {
+        { Some(certificate) => {
             Ok(Some(Self::AttributeCertificateV2(Box::new(certificate))))
-        } else if let Some(certificate) = cons
+        } _ => { match cons
             .take_opt_constructed_if(Tag::CTX_3, |cons| OtherCertificateFormat::take_from(cons))?
-        {
+        { Some(certificate) => {
             Ok(Some(Self::Other(Box::new(certificate))))
-        } else if let Some(certificate) =
-            cons.take_opt_constructed(|_, cons| Certificate::from_sequence(cons))?
-        {
+        } _ => { match cons.take_opt_constructed(|_, cons| Certificate::from_sequence(cons))?
+        { Some(certificate) => {
             Ok(Some(Self::Certificate(Box::new(certificate))))
-        } else {
+        } _ => {
             Ok(None)
-        }
+        }}}}}}
     }
 
     pub fn encode_ref(&self) -> impl Values + '_ {

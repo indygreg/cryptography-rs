@@ -7,6 +7,7 @@
 Released on ReleaseDate.
 
 * MSRV 1.75 -> 1.85.
+* Rust edition 2021 -> 2024.
 
 ## 0.27.0
 

@@ -358,9 +358,9 @@ impl SignatureAlgorithm {
         oid: &Oid,
         digest_algorithm: DigestAlgorithm,
     ) -> Result<Self, Error> {
-        if let Ok(alg) = Self::try_from(oid) {
+        match Self::try_from(oid) { Ok(alg) => {
             Ok(alg)
-        } else if let Ok(key_alg) = KeyAlgorithm::try_from(oid) {
+        } _ => { match KeyAlgorithm::try_from(oid) { Ok(key_alg) => {
             match key_alg {
                 KeyAlgorithm::Rsa => match digest_algorithm {
                     DigestAlgorithm::Sha1 => Ok(Self::RsaSha1),
@@ -380,14 +380,14 @@ impl SignatureAlgorithm {
                     }
                 },
             }
-        } else if oid == &OID_NO_SIGNATURE_ALGORITHM {
+        } _ => if oid == &OID_NO_SIGNATURE_ALGORITHM {
             Ok(Self::NoSignature(digest_algorithm))
         } else {
             Err(Error::UnknownSignatureAlgorithm(format!(
                 "do not know how to resolve {} to a signature algorithm",
                 oid
             )))
-        }
+        }}}}
     }
 
     /// Creates an instance with the noSignature mechanism and [DigestAlgorithm]
