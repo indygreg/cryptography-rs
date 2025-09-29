@@ -24,5 +24,5 @@ pem = "3.0.4"
 ring = "0.17.8"
 signature = { version = "2.2.0", features = ["std"] }
 spki = { version = "0.7.3", features = ["alloc"] }
-thiserror = "2.0.15"
+thiserror = "2.0.17"
 zeroize = { version = "1.8.1", features = ["derive"] }
