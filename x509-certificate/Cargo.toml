@@ -25,4 +25,4 @@ ring = "0.17.8"
 signature = { version = "2.2.0", features = ["std"] }
 spki = { version = "0.7.3", features = ["alloc"] }
 thiserror = "2.0.15"
-zeroize = { version = "1.8.1", features = ["derive"] }
+zeroize = { version = "1.8.2", features = ["derive"] }
