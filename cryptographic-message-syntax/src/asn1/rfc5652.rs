@@ -667,7 +667,7 @@ impl SignedAttributes {
         // shorter value with a prefix match against a longer value as less than,
         // so we can avoid the padding.
 
-        let mut attributes = self
+        let attributes = self
             .0
             .iter()
             .map(|x| {
@@ -680,8 +680,6 @@ impl SignedAttributes {
                 Ok((encoded, x.clone()))
             })
             .collect::<Result<Vec<(_, _)>, std::io::Error>>()?;
-
-        attributes.sort_by(|(a, _), (b, _)| a.cmp(b));
 
         Ok(Self(
             attributes.into_iter().map(|(_, x)| x).collect::<Vec<_>>(),
