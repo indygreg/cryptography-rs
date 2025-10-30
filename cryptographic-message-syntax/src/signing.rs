@@ -632,4 +632,86 @@ mod tests {
                 .unwrap();
         }
     }
+
+    #[test]
+    fn signed_attributes_order() {
+        let key = rsa_private_key();
+        let cert = rsa_cert();
+
+        let signer = SignerBuilder::new(&key, cert);
+
+        let ber = SignedDataBuilder::default()
+            .content_inline(vec![42])
+            .signer(signer)
+            .build_der()
+            .unwrap();
+
+        // Parse the SignedData
+        let signed_data = SignedData::parse_ber(&ber).unwrap();
+
+        // Get the signer info (first signer)
+        let signer_infos: Vec<_> = signed_data.signers().collect();
+        assert!(!signer_infos.is_empty(), "Should have at least one signer");
+
+        let signer_info = signer_infos[0];
+
+        // Get signed attributes
+        let signed_attrs = signer_info.signed_attributes();
+        assert!(signed_attrs.is_some(), "Signed attributes should be present");
+        let signed_attrs = signed_attrs.unwrap();
+
+        // Collect the attributes
+        let attrs_vec: Vec<_> = signed_attrs.attributes().to_vec();
+
+        println!("\n=== RFC 5652 Signed Attributes Ordering Test ===");
+        println!("Total signed attributes: {}", attrs_vec.len());
+
+        // Define expected attributes with their OIDs
+        let expected_order = vec![
+            ("1.2.840.113549.1.9.3", "content-type"),
+            ("1.2.840.113549.1.9.4", "message-digest"),
+            ("1.2.840.113549.1.9.5", "signing-time"),
+        ];
+
+        // Find positions of each attribute
+        let mut positions = Vec::new();
+        for (expected_oid, name) in &expected_order {
+            if let Some(pos) = attrs_vec.iter().position(|attr| attr.typ.to_string() == *expected_oid) {
+                positions.push((name, *expected_oid, pos));
+                println!("  {} ({}): position {}", name, expected_oid, pos);
+            }
+        }
+
+        // Verify we found all expected attributes
+        assert_eq!(
+            positions.len(),
+            expected_order.len(),
+            "Not all expected attributes were found"
+        );
+
+        // Check that positions are in ascending order
+        println!("\n=== Checking DER Ordering ===");
+        for i in 0..positions.len() - 1 {
+            let (curr_name, curr_oid, curr_pos) = positions[i];
+            let (next_name, next_oid, next_pos) = positions[i + 1];
+
+            assert!(
+                curr_pos < next_pos,
+                "\n\nBUG CONFIRMED: Attributes are not in DER order!\n\
+                {} ({}) is at position {} but should come before\n\
+                {} ({}) which is at position {}\n\
+                \n\
+                According to RFC 5652 Section 5.3:\n\
+                - Signed attributes MUST be DER encoded\n\
+                - DER encoding requires SET OF to be sorted by tag (OID)\n\
+                - OID comparison is lexicographic on encoded bytes\n",
+                curr_name, curr_oid, curr_pos,
+                next_name, next_oid, next_pos
+            );
+
+            println!("✓ {} (pos {}) < {} (pos {})", curr_name, curr_pos, next_name, next_pos);
+        }
+
+        println!("\n✓ All attributes are in correct DER order");
+    }
 }
