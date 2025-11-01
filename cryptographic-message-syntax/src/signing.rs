@@ -443,11 +443,17 @@ impl<'a> SignedDataBuilder<'a> {
         seen_certificates.sort_by(|a, b| a.compare_issuer(b));
 
         let mut certificates = CertificateSet::default();
-        certificates.extend(
-            seen_certificates
-                .into_iter()
-                .map(|cert| CertificateChoices::Certificate(Box::new(cert.into()))),
-        );
+        certificates.extend(seen_certificates.into_iter().map(|cert| {
+            let cert_asn1: x509_certificate::rfc5280::Certificate = cert.into();
+
+            // Capture the original DER encoding
+            let original = bcder::Captured::from_values(bcder::Mode::Der, cert_asn1.encode_ref());
+
+            CertificateChoices::Certificate {
+                parsed: Box::new(cert_asn1),
+                original,
+            }
+        }));
 
         // The certificates could have been encountered in any order. For best results,
         // we want issuer certificates before their "children." So we apply sorting here.
