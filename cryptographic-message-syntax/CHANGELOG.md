@@ -6,6 +6,8 @@
 
 Released on ReleaseDate.
 
+* `bytes` 1.8 -> 1.10.
+
 ## 0.28.0
 
 Released on 2025-08-17.
