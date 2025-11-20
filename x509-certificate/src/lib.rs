@@ -89,6 +89,7 @@ pub mod testutil;
 
 use thiserror::Error;
 
+pub use bcder::{ConstOid, Oid};
 pub use signature::Signer;
 
 /// Errors related to X.509 certificate handling.
