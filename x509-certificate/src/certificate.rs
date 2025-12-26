@@ -6,16 +6,16 @@
 
 use {
     crate::{
-        algorithm::DigestAlgorithm, asn1time::Time, rfc2986, rfc3280::Name, rfc5280, rfc5652,
-        rfc5958::Attributes, rfc8017::RsaPublicKey, signing::Sign, InMemorySigningKeyPair,
-        KeyAlgorithm, KeyInfoSigner, SignatureAlgorithm, X509CertificateError as Error,
+        InMemorySigningKeyPair, KeyAlgorithm, KeyInfoSigner, SignatureAlgorithm,
+        X509CertificateError as Error, algorithm::DigestAlgorithm, asn1time::Time, rfc2986,
+        rfc3280::Name, rfc5280, rfc5652, rfc5958::Attributes, rfc8017::RsaPublicKey, signing::Sign,
     },
     bcder::{
+        ConstOid, Mode, Oid,
         decode::Constructed,
         encode::Values,
         int::Integer,
         string::{BitString, OctetString},
-        ConstOid, Mode, Oid,
     },
     bytes::Bytes,
     chrono::{DateTime, Duration, Utc},
@@ -551,8 +551,15 @@ impl CapturedX509Certificate {
             .subject_public_key_info
             .subject_public_key
             .octet_bytes();
-
-        self.verify_signed_by_public_key(public_key)
+        let key_algorithm = KeyAlgorithm::try_from(
+            &other
+                .as_ref()
+                .0
+                .tbs_certificate
+                .subject_public_key_info
+                .algorithm,
+        )?;
+        self.verify_signed_by_public_key_and_algorithm(public_key, key_algorithm)
     }
 
     /// Verify a signature over signed data purportedly signed by this certificate.
@@ -606,6 +613,20 @@ impl CapturedX509Certificate {
         &self,
         public_key_data: impl AsRef<[u8]>,
     ) -> Result<(), Error> {
+        let key_algorithm =
+            KeyAlgorithm::try_from(&self.0.tbs_certificate.subject_public_key_info.algorithm)?;
+        self.verify_signed_by_public_key_and_algorithm(public_key_data, key_algorithm)
+    }
+
+    /// Like [Self::verify_signed_by_certificate] but accepts the explicit [KeyAlgorithm] to use.
+    ///
+    /// Use this API in cases where the subject public key info algorithm is different from the
+    /// algorithm used by the signing key.
+    pub fn verify_signed_by_public_key_and_algorithm(
+        &self,
+        public_key_data: impl AsRef<[u8]>,
+        public_key_algorithm: KeyAlgorithm,
+    ) -> Result<(), Error> {
         // Always verify against the original content, as the inner
         // certificate could be mutated via the mutable wrapper of this
         // type.
@@ -623,16 +644,10 @@ impl CapturedX509Certificate {
             .expect("original certificate data should have persisted as part of re-parse");
         let signature = this_cert.0.signature.octet_bytes();
 
-        let key_algorithm = KeyAlgorithm::try_from(
-            &this_cert
-                .0
-                .tbs_certificate
-                .subject_public_key_info
-                .algorithm,
-        )?;
         let signature_algorithm = SignatureAlgorithm::try_from(&this_cert.0.signature_algorithm)?;
 
-        let verify_algorithm = signature_algorithm.resolve_verification_algorithm(key_algorithm)?;
+        let verify_algorithm =
+            signature_algorithm.resolve_verification_algorithm(public_key_algorithm)?;
 
         let public_key = ringsig::UnparsedPublicKey::new(verify_algorithm, public_key_data);
 
