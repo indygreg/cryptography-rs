@@ -4,8 +4,8 @@
 
 use {
     crate::{
-        rfc3447::RsaPrivateKey, rfc5958::OneAsymmetricKey, EcdsaCurve, KeyAlgorithm,
-        SignatureAlgorithm, X509CertificateError as Error,
+        EcdsaCurve, KeyAlgorithm, SignatureAlgorithm, X509CertificateError as Error,
+        rfc3447::RsaPrivateKey, rfc5958::OneAsymmetricKey,
     },
     bcder::decode::Constructed,
     bytes::Bytes,
@@ -51,6 +51,7 @@ pub trait Sign {
     fn private_key_data(&self) -> Option<Zeroizing<Vec<u8>>>;
 
     /// Obtain RSA key primes p and q, if available.
+    #[allow(clippy::type_complexity)]
     fn rsa_primes(&self) -> Result<Option<(Zeroizing<Vec<u8>>, Zeroizing<Vec<u8>>)>, Error>;
 }
 
