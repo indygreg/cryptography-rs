@@ -213,7 +213,7 @@ impl GeneralizedTime {
                         let mut digits = std::str::from_utf8(&digits[1..])
                             .map_err(|s| source.content_err(s.to_string()))?
                             .to_string();
-                        digits.extend(std::iter::repeat('0').take(9 - digits_count));
+                        digits.extend(std::iter::repeat_n('0', 9 - digits_count));
 
                         (
                             u32::from_str(&digits)
