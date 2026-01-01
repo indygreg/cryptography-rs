@@ -50,7 +50,7 @@ jobs:
         run: |
           cargo test --workspace
 
-      - uses: actions-rs/clippy@master
+      - name: Run Clippy
         if: ${{ matrix.rust_toolchain == 'stable' || matrix.rust_toolchain == 'beta' }}
-        with:
-          args: --workspace
+        run: |
+          cargo clippy --workspace --all-targets --all-features
