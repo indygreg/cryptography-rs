@@ -15,6 +15,8 @@ jobs:
           - 'nightly'
           - '1.85.1'
         target:
+          - os: 'ubuntu-24.04-arm'
+            triple: 'aarch64-unknown-linux-gnu'
           - os: 'ubuntu-24.04'
             triple: 'x86_64-unknown-linux-gnu'
           - os: 'macos-15-intel'
