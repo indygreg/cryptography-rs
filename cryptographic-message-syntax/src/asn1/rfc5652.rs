@@ -146,7 +146,7 @@ impl Values for ContentInfo {
 ///   crls [1] IMPLICIT RevocationInfoChoices OPTIONAL,
 ///   signerInfos SignerInfos }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct SignedData {
     pub version: CmsVersion,
     pub digest_algorithms: DigestAlgorithmIdentifiers,
@@ -790,7 +790,7 @@ pub type SignatureValue = OctetString;
 ///   encryptedContentInfo EncryptedContentInfo,
 ///   unprotectedAttrs [1] IMPLICIT UnprotectedAttributes OPTIONAL }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct EnvelopedData {
     pub version: CmsVersion,
     pub originator_info: Option<OriginatorInfo>,
@@ -806,7 +806,7 @@ pub struct EnvelopedData {
 ///   certs [0] IMPLICIT CertificateSet OPTIONAL,
 ///   crls [1] IMPLICIT RevocationInfoChoices OPTIONAL }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct OriginatorInfo {
     pub certs: Option<CertificateSet>,
     pub crls: Option<RevocationInfoChoices>,
@@ -1082,7 +1082,7 @@ pub struct EncryptedData {
 ///   mac MessageAuthenticationCode,
 ///   unauthAttrs [3] IMPLICIT UnauthAttributes OPTIONAL }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct AuthenticatedData {
     pub version: CmsVersion,
     pub originator_info: Option<OriginatorInfo>,
@@ -1162,9 +1162,14 @@ pub struct OtherRevocationInfoFormat {
 ///   v2AttrCert [2] IMPLICIT AttributeCertificateV2,
 ///   other [3] IMPLICIT OtherCertificateFormat }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum CertificateChoices {
-    Certificate(Box<Certificate>),
+    Certificate {
+        parsed: Box<Certificate>,
+        /// The original DER encoding of the certificate.
+        /// This is preserved to avoid re-encoding artifacts.
+        original: Captured,
+    },
     // ExtendedCertificate(ExtendedCertificate),
     // AttributeCertificateV1(AttributeCertificateV1),
     AttributeCertificateV2(Box<AttributeCertificateV2>),
@@ -1191,17 +1196,68 @@ impl CertificateChoices {
             .take_opt_constructed_if(Tag::CTX_3, |cons| OtherCertificateFormat::take_from(cons))?
         { Some(certificate) => {
             Ok(Some(Self::Other(Box::new(certificate))))
-        } _ => { match cons.take_opt_constructed(|_, cons| Certificate::from_sequence(cons))?
-        { Some(certificate) => {
-            Ok(Some(Self::Certificate(Box::new(certificate))))
         } _ => {
-            Ok(None)
-        }}}}}}
+            // Parse as SEQUENCE (Certificate)
+            // We need to capture the original bytes AND parse the certificate.
+            // Strategy: capture the next SEQUENCE, then parse it.
+
+            // Try to capture the next SEQUENCE tag
+            let captured_result = cons.capture(|capture_cons| {
+                // Try to take a SEQUENCE, skip all its content
+                match capture_cons.take_opt_constructed(|tag, inner| {
+                    if tag == Tag::SEQUENCE {
+                        inner.skip_all()?;
+                        Ok(())
+                    } else {
+                        Err(inner.content_err("expected SEQUENCE for Certificate"))
+                    }
+                })? {
+                    Some(()) => Ok(()),
+                    None => Ok(()), // No certificate found, but not an error for capture
+                }
+            });
+
+            match captured_result {
+                Ok(original) => {
+                    // If the captured bytes are empty, there was no certificate
+                    if original.as_slice().is_empty() {
+                        return Ok(None);
+                    }
+
+                    // Now parse the captured bytes to get the Certificate
+                    // Note: The captured bytes include the SEQUENCE tag, so we need to enter it first
+                    let cert = original.clone().decode(|cons| {
+                        cons.take_constructed(|_, inner_cons| {
+                            Certificate::from_sequence(inner_cons)
+                        })
+                    }).map_err(|e| cons.content_err(format!("Failed to parse captured certificate: {:?}", e)))?;
+
+                    Ok(Some(Self::Certificate {
+                        parsed: Box::new(cert),
+                        original,
+                    }))
+                }
+                Err(_) => Ok(None)
+            }
+        }}}}
+    }
+
+    /// Get a reference to the parsed Certificate, if this is a Certificate variant.
+    pub fn as_certificate(&self) -> Option<&Certificate> {
+        match self {
+            Self::Certificate { parsed, .. } => Some(parsed),
+            _ => None,
+        }
     }
 
     pub fn encode_ref(&self) -> impl Values + '_ {
         match self {
-            Self::Certificate(cert) => cert.encode_ref(),
+            Self::Certificate { original, .. } => {
+                // Return the original DER bytes instead of re-encoding.
+                // This preserves the exact encoding, including signature algorithm
+                // parameter formatting (e.g., presence/absence of NULL parameters).
+                original
+            }
             Self::AttributeCertificateV2(_) => unimplemented!(),
             Self::Other(_) => unimplemented!(),
         }
@@ -1238,7 +1294,7 @@ impl OtherCertificateFormat {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default)]
 pub struct CertificateSet(Vec<CertificateChoices>);
 
 impl Deref for CertificateSet {
