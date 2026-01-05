@@ -7,6 +7,7 @@
 Released on ReleaseDate.
 
 * `bytes` 1.8 -> 1.10.
+* `reqest` 0.12 -> 0.13.
 
 ## 0.28.0
 
