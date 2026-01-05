@@ -47,7 +47,9 @@ impl AlgorithmIdentifier {
     cons.take_sequence(|cons| Self::take_sequence(cons))
   }
 
-  pub fn take_opt_from<S: Source>(cons: &mut Constructed<S>) -> Result<Option<Self>, DecodeError<S::Error>> {
+    pub fn take_opt_from<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Option<Self>, DecodeError<S::Error>> {
     cons.take_opt_sequence(|cons| Self::take_sequence(cons))
   }
 
@@ -61,7 +63,10 @@ impl AlgorithmIdentifier {
       Some(AlgorithmParameter(parameters))
     };
 
-    Ok(Self { algorithm, parameters })
+        Ok(Self {
+            algorithm,
+            parameters,
+        })
   }
 
   fn encoded_values(&self, mode: Mode) -> impl Values + '_ {
@@ -188,7 +193,9 @@ impl Certificate {
     cons.take_sequence(|cons| Self::from_sequence(cons))
   }
 
-  pub fn from_sequence<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+    pub fn from_sequence<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Self, DecodeError<S::Error>> {
     let tbs_certificate = TbsCertificate::take_from(cons)?;
     let signature_algorithm = AlgorithmIdentifier::take_from(cons)?;
     let signature = BitString::take_from(cons)?;
@@ -266,7 +273,10 @@ impl Debug for TbsCertificate {
     s.field("issuer_unique_id", &self.issuer_unique_id);
     s.field("subject_unique_id", &self.subject_unique_id);
     s.field("extensions", &self.extensions);
-    s.field("raw_data", &format_args!("{:?}", self.raw_data.as_ref().map(hex::encode)));
+        s.field(
+            "raw_data",
+            &format_args!("{:?}", self.raw_data.as_ref().map(hex::encode)),
+        );
     s.finish()
   }
 }
@@ -287,8 +297,12 @@ impl TbsCertificate {
         let validity = Validity::take_from(cons)?;
         let subject = Name::take_from(cons)?;
         let subject_public_key_info = SubjectPublicKeyInfo::take_from(cons)?;
-        let issuer_unique_id = cons.take_opt_constructed_if(Tag::CTX_1, |cons| UniqueIdentifier::take_from(cons))?;
-        let subject_unique_id = cons.take_opt_constructed_if(Tag::CTX_2, |cons| UniqueIdentifier::take_from(cons))?;
+                let issuer_unique_id = cons.take_opt_constructed_if(Tag::CTX_1, |cons| {
+                    UniqueIdentifier::take_from(cons)
+                })?;
+                let subject_unique_id = cons.take_opt_constructed_if(Tag::CTX_2, |cons| {
+                    UniqueIdentifier::take_from(cons)
+                })?;
         let extensions = cons.take_opt_constructed_if(Tag::CTX_3, Extensions::take_from)?;
 
         res = Some(Self {
@@ -354,7 +368,9 @@ impl Version {
     }
   }
 
-  pub fn take_opt_from<S: Source>(cons: &mut Constructed<S>) -> Result<Option<Self>, DecodeError<S::Error>> {
+    pub fn take_opt_from<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Option<Self>, DecodeError<S::Error>> {
     match cons.take_opt_primitive_if(Tag::INTEGER, Integer::i8_from_primitive)? {
       Some(0) => Ok(Some(Self::V1)),
       Some(1) => Ok(Some(Self::V2)),
@@ -392,7 +408,10 @@ impl Validity {
       let not_before = Time::take_from(cons)?;
       let not_after = Time::take_from(cons)?;
 
-      Ok(Self { not_before, not_after })
+            Ok(Self {
+                not_before,
+                not_after,
+            })
     })
   }
 
@@ -459,7 +478,9 @@ impl SubjectPublicKeyInfo {
 pub struct Extensions(Vec<Extension>);
 
 impl Extensions {
-  pub fn take_opt_from<S: Source>(cons: &mut Constructed<S>) -> Result<Option<Self>, DecodeError<S::Error>> {
+    pub fn take_opt_from<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Option<Self>, DecodeError<S::Error>> {
     cons.take_opt_sequence(|cons| Self::from_sequence(cons))
   }
 
@@ -467,7 +488,9 @@ impl Extensions {
     cons.take_sequence(|cons| Self::from_sequence(cons))
   }
 
-  pub fn from_sequence<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+    pub fn from_sequence<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Self, DecodeError<S::Error>> {
     let mut extensions = Vec::new();
 
     while let Some(extension) = Extension::take_opt_from(cons)? {
@@ -524,13 +547,18 @@ impl Debug for Extension {
     let mut s = f.debug_struct("Extension");
     s.field("id", &format_args!("{}", self.id));
     s.field("critical", &self.critical);
-    s.field("value", &format_args!("{}", hex::encode(self.value.clone().into_bytes().as_ref())));
+        s.field(
+            "value",
+            &format_args!("{}", hex::encode(self.value.clone().into_bytes().as_ref())),
+        );
     s.finish()
   }
 }
 
 impl Extension {
-  pub fn take_opt_from<S: Source>(cons: &mut Constructed<S>) -> Result<Option<Self>, DecodeError<S::Error>> {
+    pub fn take_opt_from<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Option<Self>, DecodeError<S::Error>> {
     cons.take_opt_sequence(|cons| Self::from_sequence(cons))
   }
 
@@ -543,7 +571,11 @@ impl Extension {
     let critical = cons.take_opt_bool()?;
     let value = OctetString::take_from(cons)?;
 
-    Ok(Self { id, critical, value })
+        Ok(Self {
+            id,
+            critical,
+            value,
+        })
   }
 
   pub fn encode_ref(&self) -> impl Values + '_ {
@@ -595,11 +627,15 @@ impl CertificateList {
     cons.take_sequence(|cons| Self::from_sequence(cons))
   }
 
-  pub fn take_opt_from<S: Source>(cons: &mut Constructed<S>) -> Result<Option<Self>, DecodeError<S::Error>> {
+    pub fn take_opt_from<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Option<Self>, DecodeError<S::Error>> {
     cons.take_opt_sequence(|cons| Self::from_sequence(cons))
   }
 
-  pub fn from_sequence<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+    pub fn from_sequence<S: Source>(
+        cons: &mut Constructed<S>,
+    ) -> Result<Self, DecodeError<S::Error>> {
     let tbs_cert_list = TbsCertList::take_from(cons)?;
     let signature_algorithm = AlgorithmIdentifier::take_from(cons)?;
     let signature = BitString::take_from(cons)?;
