@@ -84,11 +84,11 @@ impl<'a> SignerBuilder<'a> {
                 serial_number: signing_certificate.serial_number_asn1().clone(),
             }),
             signing_certificate: Some(signing_certificate),
-            digest_algorithm: DigestAlgorithm::Sha256,
+            digest_algorithm: DigestAlgorithm::Sha384,
             message_id_content: None,
             content_type: Oid(Bytes::copy_from_slice(OID_ID_DATA.as_ref())),
             extra_signed_attributes: Vec::new(),
-            time_stamp_url: None,
+            time_stamp_url: None
         }
     }
 
@@ -108,7 +108,7 @@ impl<'a> SignerBuilder<'a> {
             message_id_content: None,
             content_type: Oid(Bytes::copy_from_slice(OID_ID_DATA.as_ref())),
             extra_signed_attributes: Vec::new(),
-            time_stamp_url: None,
+            time_stamp_url: None
         }
     }
 
@@ -211,6 +211,11 @@ pub struct SignedDataBuilder<'a> {
     ///
     /// All signatures will use the same time.
     signing_time: UtcTime,
+
+    ///
+    /// CMS version (default V1)
+    ///
+    cms_version: CmsVersion
 }
 
 impl Default for SignedDataBuilder<'_> {
@@ -221,6 +226,7 @@ impl Default for SignedDataBuilder<'_> {
             certificates: vec![],
             content_type: Oid(OID_ID_SIGNED_DATA.as_ref().into()),
             signing_time: UtcTime::now(),
+            cms_version: CmsVersion::V1
         }
     }
 }
@@ -283,6 +289,13 @@ impl<'a> SignedDataBuilder<'a> {
         self
     }
 
+    ///
+    /// Force CMS version to be used for the signed data
+    ///
+    pub fn cms_version(mut self, cms_version: CmsVersion) -> Self {
+        self.cms_version = cms_version;
+        self
+    }
     /// Specify the signing time to use in signatures.
     ///
     /// If not called, current time at struct construction will be used.
@@ -307,7 +320,6 @@ impl<'a> SignedDataBuilder<'a> {
                 }
             }
 
-            let version = CmsVersion::V1;
             let digest_algorithm = DigestAlgorithmIdentifier {
                 algorithm: signer.digest_algorithm.into(),
                 parameters: None,
@@ -375,7 +387,7 @@ impl<'a> SignedDataBuilder<'a> {
             // is on SignerInfo. So construct an instance so we can compute the
             // signature.
             let mut signer_info = SignerInfo {
-                version,
+                version: self.cms_version,
                 sid: signer.signer_identifier.clone(),
                 digest_algorithm,
                 signed_attributes,
@@ -453,7 +465,7 @@ impl<'a> SignedDataBuilder<'a> {
         // we want issuer certificates before their "children." So we apply sorting here.
 
         let signed_data = SignedData {
-            version: CmsVersion::V1,
+            version: self.cms_version,
             digest_algorithms,
             content_info: EncapsulatedContentInfo {
                 content_type: self.content_type.clone(),
