@@ -84,7 +84,7 @@ impl<'a> SignerBuilder<'a> {
                 serial_number: signing_certificate.serial_number_asn1().clone(),
             }),
             signing_certificate: Some(signing_certificate),
-            digest_algorithm: DigestAlgorithm::Sha384,
+            digest_algorithm: DigestAlgorithm::Sha256,
             message_id_content: None,
             content_type: Oid(Bytes::copy_from_slice(OID_ID_DATA.as_ref())),
             extra_signed_attributes: Vec::new(),
