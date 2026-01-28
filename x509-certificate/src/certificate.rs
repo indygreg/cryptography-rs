@@ -231,7 +231,11 @@ impl X509Certificate {
             .algorithm
     }
 
-    /// Obtain the [SignatureAlgorithm this certificate will use.
+    /// Obtain the [SignatureAlgorithm] this certificate was signed with.
+    ///
+    /// This is *not* the same algorithm that this certificate will sign things
+    /// with: things signed by this certificate will use some signature
+    /// algorithm derived from [Self::key_algorithm()].
     ///
     /// Returns [None] if we failed to resolve an instance (probably because we don't
     /// recognize the algorithm).
