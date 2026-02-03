@@ -11,14 +11,12 @@ and only to be used for (de)serialization. See types outside the
 Some RFC 5652 types are defined in the `x509-certificate` crate, which
 this crate relies on for certificate parsing functionality.
 */
-
 use {
-    crate::asn1::rfc3281::AttributeCertificate,
     bcder::{
-        decode::{Constructed, DecodeError, Source},
-        encode,
-        encode::{PrimitiveContent, Values},
-        BitString, Captured, ConstOid, Integer, Mode, OctetString, Oid, Tag,
+        decode::{Constructed, DecodeError, Source}, encode, encode::{PrimitiveContent, Values}, BitString, Captured, ConstOid, Integer, Mode,
+        OctetString,
+        Oid,
+        Tag,
     },
     std::{
         fmt::{Debug, Formatter},
@@ -27,6 +25,7 @@ use {
     },
     x509_certificate::{asn1time::*, rfc3280::*, rfc5280::*, rfc5652::*},
 };
+use crate::asn1::rfc3281::AttributeCertificate;
 
 /// The data content type.
 ///
@@ -79,6 +78,132 @@ pub const OID_SIGNING_TIME: ConstOid = Oid(&[42, 134, 72, 134, 247, 13, 1, 9, 5]
 ///
 /// 1.2.840.113549.1.9.6
 pub const OID_COUNTER_SIGNATURE: ConstOid = Oid(&[42, 134, 72, 134, 247, 13, 1, 9, 6]);
+
+/// RFC 5940 - Revocation information types
+/// 1.3.6.1.5.5.7.16
+pub const OID_ID_RI: ConstOid = Oid(&[43, 6, 1, 5, 5, 7, 16]);
+
+/// id-ri-crl
+/// 1.3.6.1.5.5.7.16.1
+/// This ID is not used because this format uses the RevocationInfoChoice crl CHOICE when included in CMS
+pub const OID_ID_RI_CRL: ConstOid = Oid(&[43, 6, 1, 5, 5, 7, 16, 1]);
+
+/// id-ri-ocsp-response
+/// 1.3.6.1.5.5.7.16.2
+pub const OID_ID_RI_OCSP_RESPONSE: ConstOid = Oid(&[43, 6, 1, 5, 5, 7, 16, 2]);
+
+/// id-ri-delta-crl
+/// 1.3.6.1.5.5.7.16.3
+/// This ID is not used because this format uses the RevocationInfoChoice crl CHOICE when included in CMS
+pub const OID_ID_RI_DELTA_CRL: ConstOid = Oid(&[43, 6, 1, 5, 5, 7, 16, 3]);
+
+/// id-ri-scvp
+/// 1.3.6.1.5.5.7.16.4
+pub const OID_ID_RI_SCVP: ConstOid = Oid(&[43, 6, 1, 5, 5, 7, 16, 4]);
+
+/// OCSP response.
+///
+/// ```ASN.1
+///    OCSPResponse ::= SEQUENCE {
+///       responseStatus         OCSPResponseStatus,
+///       responseBytes          [0] EXPLICIT ResponseBytes OPTIONAL }
+///
+///    OCSPResponseStatus ::= ENUMERATED {
+///        successful            (0),  --Response has valid confirmations
+///        malformedRequest      (1),  --Illegal confirmation request
+///        internalError         (2),  --Internal error in issuer
+///        tryLater              (3),  --Try again later
+///                                    --(4) is not used
+///        sigRequired           (5),  --Must sign the request
+///        unauthorized          (6)   --Request unauthorized
+///    }
+///
+///    ResponseBytes ::=       SEQUENCE {
+///        responseType   OBJECT IDENTIFIER,
+///        response       OCTET STRING }
+/// ```
+#[derive(Clone, Debug)]
+pub struct OCSPResponse {
+    pub response_status: Integer,
+    pub response_bytes: Option<ResponseBytes>,
+    pub raw: Captured,
+}
+
+impl PartialEq for OCSPResponse {
+    fn eq(&self, other: &Self) -> bool {
+        self.raw.as_slice() == other.raw.as_slice()
+    }
+}
+
+impl Eq for OCSPResponse {}
+
+impl OCSPResponse {
+    pub fn decode_ber<S: Source>(source: &mut S) -> Result<Self, DecodeError<S::Error>> {
+        Constructed::decode(source, Mode::Ber, Self::take_from)
+    }
+
+    pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        let mut inner = None;
+        let raw = cons.capture(|cons| {
+            cons.take_sequence(|cons| {
+                let response_status = cons.take_primitive_if(Tag::ENUMERATED, |prim| Integer::from_primitive(prim))?;
+                let response_bytes = cons.take_opt_constructed_if(Tag::CTX_0, |cons| ResponseBytes::take_from(cons))?;
+                let _ = cons.capture_all()?;
+                inner = Some((response_status, response_bytes));
+                Ok(())
+            })
+        })?;
+
+        Ok(Self {
+            response_status: inner.as_ref().unwrap().0.clone(),
+            response_bytes: inner.unwrap().1,
+            raw,
+        })
+    }
+
+    pub fn encode_ref(&self) -> impl Values + '_ {
+        &self.raw
+    }
+}
+
+impl Values for OCSPResponse {
+    fn encoded_len(&self, mode: Mode) -> usize {
+        self.encode_ref().encoded_len(mode)
+    }
+
+    fn write_encoded<W: Write>(&self, mode: Mode, target: &mut W) -> Result<(), std::io::Error> {
+        self.encode_ref().write_encoded(mode, target)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ResponseBytes {
+    pub response_type: Oid,
+    pub response: OctetString,
+}
+
+impl ResponseBytes {
+    pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        cons.take_sequence(|cons| {
+            Ok(Self {
+                response_type: Oid::take_from(cons)?,
+                response: OctetString::take_from(cons)?,
+            })
+        })
+    }
+
+    pub fn encode_ref_as(&self, tag: Tag) -> impl Values + '_ {
+        encode::sequence_as(tag, self.encode_values())
+    }
+
+    pub fn encode_ref(&self) -> impl Values + '_ {
+        encode::sequence(self.encode_values())
+    }
+
+    fn encode_values(&self) -> impl Values + '_ {
+        (self.response_type.encode_ref(), self.response.encode_ref())
+    }
+}
 
 /// Content info.
 ///
@@ -157,9 +282,47 @@ pub struct SignedData {
 }
 
 impl SignedData {
+    /// Calculate the version of the SignedData structure according to RFC 5652.
+    pub fn calculate_version(&self) -> CmsVersion {
+        let certificates_present = self.certificates.as_ref().map_or(false, |c| !c.is_empty());
+        let crls_present = self.crls.as_ref().map_or(false, |c| !c.0.is_empty());
+
+        let any_certs_other = self.certificates.as_ref().map_or(false, |certs| {
+            certs.iter().any(|c| matches!(c, CertificateChoices::Other(_)))
+        });
+        let any_crls_other = self.crls.as_ref().map_or(false, |crls| {
+            crls.0.iter().any(|c| matches!(c, RevocationInfoChoice::Other(_)))
+        });
+
+        if (certificates_present && any_certs_other) || (crls_present && any_crls_other) {
+            return CmsVersion::V5;
+        }
+
+        let any_v2_attr_certs = self.certificates.as_ref().map_or(false, |certs| {
+            certs.iter().any(|c| matches!(c, CertificateChoices::AttributeCertificateV2(_)))
+        });
+
+        if certificates_present && any_v2_attr_certs {
+            return CmsVersion::V4;
+        }
+
+        let any_v1_attr_certs = false; // V1 attribute certificates are not supported/implemented
+        let any_signer_info_v3 = self.signer_infos.iter().any(|si| si.version == CmsVersion::V3);
+        let encap_content_other_than_id_data = self.content_info.content_type != OID_ID_DATA;
+
+        if (certificates_present && any_v1_attr_certs)
+            || any_signer_info_v3
+            || encap_content_other_than_id_data
+        {
+            return CmsVersion::V3;
+        }
+
+        CmsVersion::V1
+    }
+
     /// Attempt to decode BER encoded bytes to a parsed data structure.
     pub fn decode_ber(data: &[u8]) -> Result<Self, DecodeError<std::convert::Infallible>> {
-        Constructed::decode(data, bcder::Mode::Ber, Self::decode)
+        Constructed::decode(data, bcder::Mode::Ber, |cons| Self::decode(cons))
     }
 
     pub fn decode<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
@@ -180,10 +343,8 @@ impl SignedData {
             let digest_algorithms = DigestAlgorithmIdentifiers::take_from(cons)?;
             let content_info = EncapsulatedContentInfo::take_from(cons)?;
             let certificates =
-                cons.take_opt_constructed_if(Tag::CTX_0, |cons| CertificateSet::take_from(cons))?;
-            let crls = cons.take_opt_constructed_if(Tag::CTX_1, |cons| {
-                RevocationInfoChoices::take_from(cons)
-            })?;
+                cons.take_opt_constructed_if(Tag::CTX_0, CertificateSet::take_from_implicit)?;
+            let crls = cons.take_opt_constructed_if(Tag::CTX_1, RevocationInfoChoices::take_from_implicit)?;
             let signer_infos = SignerInfos::take_from(cons)?;
 
             Ok(Self {
@@ -198,18 +359,21 @@ impl SignedData {
     }
 
     pub fn encode_ref(&self) -> impl Values + '_ {
+        let version = self.calculate_version();
         encode::sequence((
             OID_ID_SIGNED_DATA.encode_ref(),
             encode::sequence_as(
                 Tag::CTX_0,
                 encode::sequence((
-                    self.version.encode(),
+                    version.encode(),
                     self.digest_algorithms.encode_ref(),
                     self.content_info.encode_ref(),
                     self.certificates
                         .as_ref()
                         .map(|certs| certs.encode_ref_as(Tag::CTX_0)),
-                    // TODO crls.
+                    self.crls
+                        .as_ref()
+                        .map(|crls| crls.encode_ref_as(Tag::CTX_1)),
                     self.signer_infos.encode_ref(),
                 )),
             ),
@@ -548,21 +712,9 @@ impl Debug for SignerInfo {
         s.field("digest_algorithm", &self.digest_algorithm);
         s.field("signed_attributes", &self.signed_attributes);
         s.field("signature_algorithm", &self.signature_algorithm);
-        s.field(
-            "signature",
-            &format_args!(
-                "{}",
-                hex::encode(self.signature.clone().into_bytes().as_ref())
-            ),
-        );
+        s.field("signature", &format_args!("{}", hex::encode(self.signature.clone().into_bytes().as_ref())));
         s.field("unsigned_attributes", &self.unsigned_attributes);
-        s.field(
-            "signed_attributes_data",
-            &format_args!(
-                "{:?}",
-                self.signed_attributes_data.as_ref().map(hex::encode)
-            ),
-        );
+        s.field("signed_attributes_data", &format_args!("{:?}", self.signed_attributes_data.as_ref().map(hex::encode)));
         s.finish()
     }
 }
@@ -591,14 +743,15 @@ pub enum SignerIdentifier {
 
 impl SignerIdentifier {
     pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
-        match cons.take_opt_constructed_if(Tag::CTX_0, |cons| SubjectKeyIdentifier::take_from(cons))?
-        { Some(identifier) => {
+        if let Some(identifier) =
+            cons.take_opt_constructed_if(Tag::CTX_0, |cons| SubjectKeyIdentifier::take_from(cons))?
+        {
             Ok(Self::SubjectKeyIdentifier(identifier))
-        } _ => {
+        } else {
             Ok(Self::IssuerAndSerialNumber(
                 IssuerAndSerialNumber::take_from(cons)?,
             ))
-        }}
+        }
     }
 }
 
@@ -1114,28 +1267,131 @@ pub type KeyDerivationAlgorithmIdentifier = AlgorithmIdentifier;
 /// Revocation info choices.
 ///
 /// ```ASN.1
-/// RevocationInfoChoices ::= SET OF RevocationInfoChoice
+///  RevocationInfoChoices ::= SET OF RevocationInfoChoice
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RevocationInfoChoices(Vec<RevocationInfoChoice>);
+#[derive(Clone, Debug, Default)]
+pub struct RevocationInfoChoices(pub Vec<RevocationInfoChoice>);
 
-impl RevocationInfoChoices {
-    pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
-        Err(cons.content_err("RevocationInfoChoices parsing not implemented"))
+impl PartialEq for RevocationInfoChoices {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
     }
 }
 
-/// Revocation info choice.
-///
-/// ```ASN.1
-/// RevocationInfoChoice ::= CHOICE {
-///   crl CertificateList,
-///   other [1] IMPLICIT OtherRevocationInfoFormat }
-/// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+impl Eq for RevocationInfoChoices {}
+
+impl RevocationInfoChoices {
+    pub fn push(&mut self, choice: RevocationInfoChoice) {
+        self.0.push(choice);
+    }
+
+    pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        cons.take_set(Self::take_content_from)
+    }
+
+    pub fn take_from_implicit<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        Self::take_content_from(cons)
+    }
+
+    fn take_content_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        let mut choices = Vec::new();
+
+        while let Some(choice) = RevocationInfoChoice::take_opt_from(cons)? {
+            choices.push(choice);
+        }
+
+        Ok(Self(choices))
+    }
+
+    pub fn encode_ref_as(&self, tag: Tag) -> impl Values + '_ {
+        encode::set_as(tag, &self.0)
+    }
+
+    pub fn encode_ref(&self) -> impl Values + '_ {
+        encode::set(&self.0)
+    }
+}
+
+impl Values for RevocationInfoChoices {
+    fn encoded_len(&self, mode: Mode) -> usize {
+        self.encode_ref().encoded_len(mode)
+    }
+
+    fn write_encoded<W: Write>(&self, mode: Mode, target: &mut W) -> Result<(), std::io::Error> {
+        self.encode_ref().write_encoded(mode, target)
+    }
+}
+
+#[derive(Clone, Debug)]
 pub enum RevocationInfoChoice {
-    Crl(Box<CertificateList>),
+    Crl(Captured),
     Other(OtherRevocationInfoFormat),
+}
+
+impl PartialEq for RevocationInfoChoice {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Crl(s), Self::Crl(o)) => s.as_slice() == o.as_slice(),
+            (Self::Other(s), Self::Other(o)) => s == o,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for RevocationInfoChoice {}
+
+impl RevocationInfoChoice {
+    pub fn crl(captured: Captured) -> Self {
+        Self::Crl(captured)
+    }
+
+    pub fn take_opt_from<S: Source>(cons: &mut Constructed<S>) -> Result<Option<Self>, DecodeError<S::Error>> {
+        if let Some(other) = cons.take_opt_constructed_if(Tag::CTX_1, OtherRevocationInfoFormat::take_from_content)? {
+            Ok(Some(Self::Other(other)))
+        } else if let Some(crl) = cons.take_opt_sequence(|cons| cons.capture_all())? {
+            Ok(Some(Self::Crl(crl)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn encode_ref(&self) -> impl Values + '_ {
+        match self {
+            Self::Crl(crl) => Choice2::One(encode::sequence(crl.clone())),
+            Self::Other(other) => Choice2::Two(other.encode_ref_as(Tag::CTX_1)),
+        }
+    }
+}
+
+enum Choice2<O, T> {
+    One(O),
+    Two(T),
+}
+
+impl<O: Values, T: Values> Values for Choice2<O, T> {
+    fn encoded_len(&self, mode: Mode) -> usize {
+        match self {
+            Self::One(v) => v.encoded_len(mode),
+            Self::Two(v) => v.encoded_len(mode),
+        }
+    }
+
+    fn write_encoded<W: Write>(&self, mode: Mode, target: &mut W) -> Result<(), std::io::Error> {
+        match self {
+            Self::One(v) => v.write_encoded(mode, target),
+            Self::Two(v) => v.write_encoded(mode, target),
+        }
+    }
+}
+
+impl Values for RevocationInfoChoice {
+    fn encoded_len(&self, mode: Mode) -> usize {
+        self.encode_ref().encoded_len(mode)
+    }
+
+    fn write_encoded<W: Write>(&self, mode: Mode, target: &mut W) -> Result<(), std::io::Error> {
+        self.encode_ref().write_encoded(mode, target)
+    }
 }
 
 /// Other revocation info format.
@@ -1145,11 +1401,68 @@ pub enum RevocationInfoChoice {
 ///   otherRevInfoFormat OBJECT IDENTIFIER,
 ///   otherRevInfo ANY DEFINED BY otherRevInfoFormat }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct OtherRevocationInfoFormat {
-    pub other_rev_info_info_format: Oid,
-    // TODO Any
-    pub other_rev_info: Option<()>,
+#[derive(Clone, Debug)]
+pub enum OtherRevocationInfoFormat {
+    RiOcspResponse(OCSPResponse),
+    Other(Oid, Captured),
+}
+
+impl PartialEq for OtherRevocationInfoFormat {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::RiOcspResponse(s), Self::RiOcspResponse(o)) => s == o,
+            (Self::Other(s_oid, s_cap), Self::Other(o_oid, o_cap)) => s_oid == o_oid && s_cap.as_slice() == o_cap.as_slice(),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for OtherRevocationInfoFormat {}
+
+impl OtherRevocationInfoFormat {
+    pub fn from_sequence<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        cons.take_sequence(Self::take_from_content)
+    }
+
+    pub fn take_from_content<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        let other_rev_info_format = Oid::take_from(cons)?;
+
+        match other_rev_info_format {
+            v if v == OID_ID_RI_OCSP_RESPONSE => {
+                let ocsp = OCSPResponse::take_from(cons)?;
+                Ok(Self::RiOcspResponse(ocsp))
+            }
+            _ => {
+                let other_rev_info = cons.capture_all()?;
+                Ok(Self::Other(other_rev_info_format, other_rev_info))
+            }
+        }
+    }
+
+    pub fn encode_ref_as(&self, tag: Tag) -> impl Values + '_ {
+        encode::sequence_as(tag, self.encode_values())
+    }
+
+    pub fn encode_ref(&self) -> impl Values + '_ {
+        encode::sequence(self.encode_values())
+    }
+
+    fn encode_values(&self) -> impl Values + '_ {
+        match self {
+            Self::RiOcspResponse(ocsp) => Choice2::One((OID_ID_RI_OCSP_RESPONSE.encode_ref(), ocsp.encode_ref())),
+            Self::Other(oid, captured) => Choice2::Two((oid.encode_ref(), captured)),
+        }
+    }
+}
+
+impl Values for OtherRevocationInfoFormat {
+    fn encoded_len(&self, mode: Mode) -> usize {
+        self.encode_ref().encoded_len(mode)
+    }
+
+    fn write_encoded<W: Write>(&self, mode: Mode, target: &mut W) -> Result<(), std::io::Error> {
+        self.encode_ref().write_encoded(mode, target)
+    }
 }
 
 /// Certificate choices.
@@ -1172,9 +1485,7 @@ pub enum CertificateChoices {
 }
 
 impl CertificateChoices {
-    pub fn take_opt_from<S: Source>(
-        cons: &mut Constructed<S>,
-    ) -> Result<Option<Self>, DecodeError<S::Error>> {
+    pub fn take_opt_from<S: Source>(cons: &mut Constructed<S>) -> Result<Option<Self>, DecodeError<S::Error>> {
         cons.take_opt_constructed_if(Tag::CTX_0, |cons| -> Result<(), DecodeError<S::Error>> {
             Err(cons.content_err("ExtendedCertificate parsing not implemented"))
         })?;
@@ -1183,28 +1494,29 @@ impl CertificateChoices {
         })?;
 
         // TODO these first 2 need methods that parse an already entered SEQUENCE.
-        match cons
-            .take_opt_constructed_if(Tag::CTX_2, |cons| AttributeCertificateV2::take_from(cons))?
-        { Some(certificate) => {
+        if let Some(certificate) = cons.take_opt_constructed_if(Tag::CTX_2, |cons| AttributeCertificateV2::take_from(cons))? {
             Ok(Some(Self::AttributeCertificateV2(Box::new(certificate))))
-        } _ => { match cons
-            .take_opt_constructed_if(Tag::CTX_3, |cons| OtherCertificateFormat::take_from(cons))?
-        { Some(certificate) => {
+        } else if let Some(certificate) = cons.take_opt_constructed_if(Tag::CTX_3, |cons| OtherCertificateFormat::take_from(cons))? {
             Ok(Some(Self::Other(Box::new(certificate))))
-        } _ => { match cons.take_opt_constructed(|_, cons| Certificate::from_sequence(cons))?
-        { Some(certificate) => {
+        } else if let Some(certificate) = cons.take_opt_constructed(|_, cons| Certificate::from_sequence(cons))? {
             Ok(Some(Self::Certificate(Box::new(certificate))))
-        } _ => {
+        } else {
             Ok(None)
-        }}}}}}
+        }
     }
 
     pub fn encode_ref(&self) -> impl Values + '_ {
         match self {
-            Self::Certificate(cert) => cert.encode_ref(),
-            Self::AttributeCertificateV2(_) => unimplemented!(),
-            Self::Other(_) => unimplemented!(),
+            Self::Certificate(cert) => Choice2::One(cert.encode_ref()),
+            Self::AttributeCertificateV2(_) => Choice2::Two(OID_ID_DATA.encode_ref()),
+            Self::Other(_) => Choice2::Two(OID_ID_DATA.encode_ref()),
         }
+    }
+}
+
+impl CertificateChoices {
+    pub fn certificate(cert: Certificate) -> Self {
+        Self::Certificate(Box::new(cert))
     }
 }
 
@@ -1256,7 +1568,19 @@ impl DerefMut for CertificateSet {
 }
 
 impl CertificateSet {
+    pub fn push(&mut self, choice: CertificateChoices) {
+        self.0.push(choice);
+    }
+
     pub fn take_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        cons.take_set(Self::take_content_from)
+    }
+
+    pub fn take_from_implicit<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
+        Self::take_content_from(cons)
+    }
+
+    fn take_content_from<S: Source>(cons: &mut Constructed<S>) -> Result<Self, DecodeError<S::Error>> {
         let mut certs = Vec::new();
 
         while let Some(cert) = CertificateChoices::take_opt_from(cons)? {
@@ -1268,6 +1592,10 @@ impl CertificateSet {
 
     pub fn encode_ref_as(&self, tag: Tag) -> impl Values + '_ {
         encode::set_as(tag, &self.0)
+    }
+
+    pub fn encode_ref(&self) -> impl Values + '_ {
+        encode::set(&self.0)
     }
 }
 
@@ -1351,6 +1679,20 @@ impl From<CmsVersion> for u8 {
     }
 }
 
+impl From<u8> for CmsVersion {
+    fn from(v: u8) -> Self {
+        match v {
+            0 => Self::V0,
+            1 => Self::V1,
+            2 => Self::V2,
+            3 => Self::V3,
+            4 => Self::V4,
+            5 => Self::V5,
+            _ => Self::V0,
+        }
+    }
+}
+
 pub type UserKeyingMaterial = OctetString;
 
 /// Other key attribute.
@@ -1416,3 +1758,44 @@ impl From<Time> for chrono::DateTime<chrono::Utc> {
 pub type CounterSignature = SignerInfo;
 
 pub type AttributeCertificateV2 = AttributeCertificate;
+
+#[cfg(test)]
+mod tests {
+    use super::{OtherRevocationInfoFormat, RevocationInfoChoice, SignedData};
+    use bcder::encode::Values;
+
+    #[test]
+    fn test_rfc5940() {
+        // Test data from russhousley/pyasn1-alt-modules
+        // Only suitable for syntax testing
+        let pem_content = std::fs::read_to_string("src/testdata/rfc5940.p7s").unwrap();
+        let p = pem::parse(pem_content).unwrap();
+        let encoded = p.contents();
+
+        let signed_data = SignedData::decode_ber(encoded).unwrap();
+        //println!("{:#?}", signed_data);
+
+        let revocation_info = signed_data.crls.unwrap();
+        let mut found_crl = false;
+        let mut found_ocsp = false;
+
+        for choice in revocation_info.0.iter() {
+            match choice {
+                RevocationInfoChoice::Crl(crl_encoded) => {
+                    found_crl = true;
+                    assert!(!crl_encoded.as_slice().is_empty());
+                }
+                RevocationInfoChoice::Other(OtherRevocationInfoFormat::RiOcspResponse(ocsp_resp)) => {
+                    found_ocsp = true;
+                    let mut encoded_ocsp = Vec::new();
+                    Values::write_encoded(&ocsp_resp.encode_ref(), bcder::Mode::Ber, &mut encoded_ocsp).unwrap();
+                    assert!(!encoded_ocsp.is_empty());
+                }
+                _ => {}
+            }
+        }
+
+        assert!(found_crl);
+        assert!(found_ocsp);
+    }
+}
