@@ -1,0 +1,58 @@
+name: CIFuzz
+permissions:
+  contents: read
+on:
+  pull_request:
+    paths:
+      - 'x509-certificate/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'x509-certificate/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Fuzzing:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        fuzz_target:
+          - fuzz_certificate_der
+          - fuzz_certificate_pem
+          - fuzz_time_parsing
+          - fuzz_csr_parse
+          - fuzz_name_parsing
+          - fuzz_extensions
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build Fuzzers
+      id: build
+      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
+      with:
+        oss-fuzz-project-name: 'x509-certificate'
+        dry-run: false
+        language: rust
+        fuzz-target: ${{ matrix.fuzz_target }}
+
+    - name: Run Fuzzers
+      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
+      with:
+        oss-fuzz-project-name: 'x509-certificate'
+        fuzz-seconds: 300
+        dry-run: false
+        language: rust
+        fuzz-target: ${{ matrix.fuzz_target }}
+
+    - name: Upload Crash
+      uses: actions/upload-artifact@v4
+      if: failure() && steps.build.outcome == 'success'
+      with:
+        name: ${{ matrix.fuzz_target }}-artifacts
+        path: ./out/artifacts

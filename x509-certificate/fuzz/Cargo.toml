@@ -1,0 +1,59 @@
+[package]
+name = "x509-certificate-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[workspace]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+bcder = "0.7.6"
+
+[dependencies.x509-certificate]
+path = ".."
+
+[[bin]]
+name = "fuzz_certificate_der"
+path = "fuzz_targets/fuzz_certificate_der.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_certificate_pem"
+path = "fuzz_targets/fuzz_certificate_pem.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_time_parsing"
+path = "fuzz_targets/fuzz_time_parsing.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_csr_parse"
+path = "fuzz_targets/fuzz_csr_parse.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_name_parsing"
+path = "fuzz_targets/fuzz_name_parsing.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_extensions"
+path = "fuzz_targets/fuzz_extensions.rs"
+test = false
+doc = false
+bench = false

@@ -1,0 +1,65 @@
+# ASN.1 Tag Types
+"SEQUENCE"
+"SET"
+"INTEGER"
+"BIT STRING"
+"OCTET STRING"
+"NULL"
+"OBJECT IDENTIFIER"
+"UTF8String"
+"PrintableString"
+"IA5String"
+"UTCTime"
+"GeneralizedTime"
+"BOOLEAN"
+
+# X.509 Extension OIDs (in text form for reference)
+"2.5.29.15"
+"2.5.29.19"
+"2.5.29.17"
+"2.5.29.37"
+"2.5.29.14"
+"2.5.29.35"
+
+# Common attribute types
+"CN"
+"C"
+"O"
+"OU"
+"ST"
+"L"
+
+# Time format patterns
+"Z"
+"+0000"
+"-0000"
+"20220130"
+"220130"
+
+# Signature algorithms
+"sha256WithRSAEncryption"
+"rsaEncryption"
+"ecdsaWithSHA256"
+"ecdsaWithSHA384"
+
+# Common extension values
+"CA:TRUE"
+"CA:FALSE"
+"critical"
+
+# PEM markers
+"-----BEGIN CERTIFICATE-----"
+"-----END CERTIFICATE-----"
+"-----BEGIN CERTIFICATE REQUEST-----"
+"-----END CERTIFICATE REQUEST-----"
+
+# Version numbers
+"\x02\x01\x02"
+"\x02\x01\x01"
+"\x02\x01\x00"
+
+# Timezone patterns
+"0100"
+"1200"
+"2359"
+"0000"
