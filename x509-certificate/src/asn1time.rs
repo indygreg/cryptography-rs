@@ -208,6 +208,14 @@ impl GeneralizedTime {
                     {
                         let digits_count = nondigit_offset - 1;
 
+                        // GeneralizedTime fractional seconds must not exceed 9 digits (nanosecond precision)
+                        if digits_count > 9 {
+                            return Err(source.content_err(format!(
+                                "fractional seconds too precise: {} digits (maximum 9 for nanosecond precision)",
+                                digits_count
+                            )));
+                        }
+
                         let (digits, remaining) = remaining.split_at(nondigit_offset);
 
                         let mut digits = std::str::from_utf8(&digits[1..])
