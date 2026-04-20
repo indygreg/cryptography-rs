@@ -708,3 +708,45 @@ impl TbsCertList {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::process::{Command, Stdio};
+
+    use crate::{InMemorySigningKeyPair, X509CertificateBuilder};
+
+    use super::*;
+
+    /// Verifies the CSR self signature using OpenSSL 
+    #[track_caller]
+    fn verify_csr_openssl(signer: InMemorySigningKeyPair) {
+        let mut cb = X509CertificateBuilder::default();
+        cb.subject().append_common_name_utf8_string("test").unwrap();
+        cb.subject().append_organization_utf8_string(core::panic::Location::caller().to_string().as_str()).unwrap();
+        let csr = cb.create_certificate_signing_request(&signer).expect("sign csr");
+        let pem = csr.encode_pem().unwrap();
+        {
+        let mut osll = Command::new("openssl");
+        osll.args(["req", "-verify", "-inform", "pem", "-text"]);
+        osll.stdin(Stdio::piped());
+        osll.stdout(Stdio::piped());
+        osll.stderr(Stdio::piped());
+        let mut child = osll.spawn().unwrap();
+        child.stdin.as_mut().expect("stdin").write_all(pem.as_bytes()).unwrap();
+        let res = child.wait_with_output().unwrap();
+        assert_eq!(res.status.code(), Some(0), "{osll:?} failed with {} {:?} {:?}", res.status, String::from_utf8(res.stdout), String::from_utf8(res.stderr));
+        }
+    }
+
+    #[test]
+    fn csr_verifies_ed25519() {
+        let signer = InMemorySigningKeyPair::generate_random(crate::KeyAlgorithm::Ed25519).unwrap();
+        verify_csr_openssl(signer);
+    }
+
+    #[test]
+    fn csr_verifies_secp256r1() {
+        let signer = InMemorySigningKeyPair::generate_random(crate::KeyAlgorithm::Ecdsa(crate::EcdsaCurve::Secp256r1)).unwrap();
+        verify_csr_openssl(signer);
+    }
+}
