@@ -3,4 +3,7 @@ members = [
     'cryptographic-message-syntax',
     'x509-certificate',
 ]
+exclude = [
+    'x509-certificate/fuzz',
+]
 resolver = "2"
