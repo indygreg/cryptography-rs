@@ -84,7 +84,7 @@ const OID_ED25519_KEY_AGREEMENT: ConstOid = Oid(&[43, 101, 110]);
 /// Edwards curve digital signature algorithm.
 ///
 /// 1.3.101.112
-const OID_ED25519_SIGNATURE_ALGORITHM: ConstOid = Oid(&[43, 101, 112]);
+pub(crate) const OID_ED25519_SIGNATURE_ALGORITHM: ConstOid = Oid(&[43, 101, 112]);
 
 /// Elliptic curve identifier for secp256r1.
 ///
@@ -637,7 +637,7 @@ impl From<KeyAlgorithm> for Oid {
         Oid(match alg {
             KeyAlgorithm::Rsa => OID_RSA.as_ref(),
             KeyAlgorithm::Ecdsa(_) => OID_EC_PUBLIC_KEY.as_ref(),
-            KeyAlgorithm::Ed25519 => OID_ED25519_KEY_AGREEMENT.as_ref(),
+            KeyAlgorithm::Ed25519 => OID_ED25519_SIGNATURE_ALGORITHM.as_ref(),
         }
         .into())
     }
@@ -648,7 +648,7 @@ impl From<KeyAlgorithm> for ObjectIdentifier {
         let bytes = match alg {
             KeyAlgorithm::Rsa => OID_RSA.as_ref(),
             KeyAlgorithm::Ecdsa(_) => OID_EC_PUBLIC_KEY.as_ref(),
-            KeyAlgorithm::Ed25519 => OID_ED25519_KEY_AGREEMENT.as_ref(),
+            KeyAlgorithm::Ed25519 => OID_ED25519_SIGNATURE_ALGORITHM.as_ref(),
         };
 
         ObjectIdentifier::from_bytes(bytes).expect("OID bytes should be valid")
@@ -746,8 +746,8 @@ mod test {
         );
 
         let oid = ObjectIdentifier::from(KeyAlgorithm::Ed25519);
-        assert_eq!(oid.to_string(), "1.3.101.110");
-        let oid = ObjectIdentifier::new("1.3.101.110").unwrap();
+        assert_eq!(oid.to_string(), "1.3.101.112");
+        let oid = ObjectIdentifier::new("1.3.101.112").unwrap();
         assert_eq!(KeyAlgorithm::try_from(&oid)?, KeyAlgorithm::Ed25519);
 
         Ok(())

@@ -5,7 +5,7 @@
 /*! ASN.1 types defined RFC 5280. */
 
 use {
-    crate::{asn1time::*, rfc3280::*},
+    crate::{algorithm::OID_ED25519_SIGNATURE_ALGORITHM, asn1time::*, rfc3280::*},
     bcder::{
         decode::{BytesSource, Constructed, DecodeError, IntoSource, Source},
         encode,
@@ -70,14 +70,17 @@ impl AlgorithmIdentifier {
     }
 
     fn encoded_values(&self, mode: Mode) -> impl Values + '_ {
-        // parameters is strictly OPTIONAL, which means we can omit it completely.
-        // However, it is common to see this field encoded as NULL and some
-        // parsers seem to insist the NULL be there or else they refuse to
-        // parse the ASN.1. So we ensure this field is always set.
+        // RFC 8410: Ed25519/Ed448 AlgorithmIdentifier parameters MUST be absent.
+        // RFC 4055: RSA parameters SHOULD be NULL (many parsers require it).
+        let omit_null =
+            self.parameters.is_none() && self.algorithm == OID_ED25519_SIGNATURE_ALGORITHM;
+
         let captured = if let Some(params) = self.parameters.as_ref() {
-            params.clone()
+            Some(params.clone())
+        } else if omit_null {
+            None
         } else {
-            AlgorithmParameter(Captured::from_values(mode, ().encode_as(Tag::NULL)))
+            Some(AlgorithmParameter(Captured::from_values(mode, ().encode_as(Tag::NULL))))
         };
 
         encode::sequence((self.algorithm.clone().encode(), captured))
